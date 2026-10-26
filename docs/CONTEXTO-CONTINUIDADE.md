@@ -13,7 +13,8 @@
 ## Estado confirmado em 26/10/2026
 - Repositório do segundo turno existe, público, branch padrão `main`.
 - README e este documento de continuidade estão versionados.
-- Nenhum script, pipeline, arquivo de BU do segundo turno ou resultado processado foi criado/validado até agora.
+- Criado `scripts/inspect_tse_bu_resources.py` (commit `f0f4cde941e0ddeb3d74982b3175c91c00eb27f7`) para consultar a API CKAN oficial e listar metadados dos recursos, sem baixar ou processar dados.
+- Nenhum pipeline de download/processamento ou resultado de BU do segundo turno foi criado ou validado.
 - Foram inspecionados no repositório original `scripts/download_bu.py`, `scripts/process_bu.py` e `scripts/generate_table.py` para entender a arquitetura a replicar.
 
 ## Fonte oficial e resultado da consulta
@@ -32,13 +33,14 @@
 6. Testes automatizados e validação da UF piloto antes da execução nacional.
 
 ## Próximas tarefas, em ordem
-1. Confirmar a URL oficial do BU do segundo turno, arquivos por UF e hashes SHA2.
-2. Baixar uma UF piloto e inspecionar cabeçalhos, codificação, delimitador, esquema e códigos reais.
-3. Adaptar downloader, processador e consolidador em scripts separados do primeiro turno.
-4. Criar testes com fixtures oficiais pequenas; nunca fabricar dados eleitorais para simular resultados.
-5. Validar a UF piloto e comparar os totais com uma fonte oficial independente quando houver granularidade compatível.
-6. Processar as 27 UFs, gerar consolidação e auditoria machine-readable.
-7. Só depois considerar dashboard ou análises adicionais descritivas.
+1. Executar `python scripts/inspect_tse_bu_resources.py` em um ambiente com acesso ao portal CKAN; revisar os recursos e confirmar se os metadados foram atualizados após o segundo turno.
+2. Confirmar a URL oficial do BU do segundo turno, arquivos por UF e hashes SHA2.
+3. Baixar uma UF piloto e inspecionar cabeçalhos, codificação, delimitador, esquema e códigos reais.
+4. Adaptar downloader, processador e consolidador em scripts separados do primeiro turno.
+5. Criar testes com fixtures oficiais pequenas; nunca fabricar dados eleitorais para simular resultados.
+6. Validar a UF piloto e comparar os totais com uma fonte oficial independente quando houver granularidade compatível.
+7. Processar as 27 UFs, gerar consolidação e auditoria machine-readable.
+8. Só depois considerar dashboard ou análises adicionais descritivas.
 
 ## Regras permanentes
 - Não inventar linhas de BU nem inferir seções ausentes; não converter ausência em zero.
