@@ -10,6 +10,7 @@ https://github.com/tiagodeazevedoferreira/tse-bu-presidencial-2026
 - [x] Repositório criado e escopo documentado.
 - [x] Estratégia definida: reproduzir a arquitetura do primeiro turno, em um repositório separado.
 - [x] Decisão metodológica: não implementar Goodman, King/EI ou modelos de inferência ecológica.
+- [x] Criar utilitário para consultar metadados atuais do conjunto oficial do TSE.
 - [ ] Confirmar os recursos oficiais de BU do segundo turno e seus hashes.
 - [ ] Baixar e inspecionar uma UF piloto.
 - [ ] Validar esquema, códigos de votação e campos de data/hora.
@@ -50,6 +51,22 @@ Reproduzir, com paths e nomes específicos do segundo turno, a arquitetura já u
 ## Análises previstas
 
 Somente análises descritivas dos dados observados: votos por seção, município e UF; comparecimento e abstenção; metadados de emissão/recebimento do BU se confirmados no esquema oficial; e comparação descritiva entre turnos após alinhar as chaves de seção e documentar mudanças de cobertura, local e eleitorado. Não estimar trajetórias individuais de eleitores a partir de margens agregadas.
+
+## Descoberta de recursos oficiais
+
+O utilitário `scripts/inspect_tse_bu_resources.py` consulta a API CKAN oficial do TSE e lista os metadados dos recursos publicados, incluindo URL, formato, hash e recursos cujos nomes mencionam segundo turno. Ele não baixa nem processa os dados; os candidatos ainda precisam ser conferidos antes de uso.
+
+Execute com Python e `requests` instalados:
+
+```bash
+python scripts/inspect_tse_bu_resources.py
+```
+
+Para salvar o resultado:
+
+```bash
+python scripts/inspect_tse_bu_resources.py --output reports/tse_bu_resources.json
+```
 
 ## Próxima etapa técnica
 
