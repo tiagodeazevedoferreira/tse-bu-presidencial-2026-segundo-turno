@@ -7,55 +7,50 @@ https://github.com/tiagodeazevedoferreira/tse-bu-presidencial-2026
 
 ## Estado atual
 
-- [x] Repositório criado e acessível.
-- [x] Escopo e regras de integridade documentados.
-- [ ] Confirmar e registrar os recursos oficiais de BU do segundo turno e seus hashes.
+- [x] Repositório criado e escopo documentado.
+- [x] Estratégia definida: reproduzir a arquitetura do primeiro turno, em um repositório separado.
+- [x] Decisão metodológica: não implementar Goodman, King/EI ou modelos de inferência ecológica.
+- [ ] Confirmar os recursos oficiais de BU do segundo turno e seus hashes.
 - [ ] Baixar e inspecionar uma UF piloto.
 - [ ] Validar esquema, códigos de votação e campos de data/hora.
-- [ ] Adaptar pipeline de download e processamento para o segundo turno.
-- [ ] Executar testes automatizados e validação nacional das 27 UFs.
-- [ ] Gerar auditoria reproduzível e dashboard independente.
-- [ ] Avaliar análises de inferência ecológica como módulo exploratório separado.
+- [ ] Adaptar download, processamento incremental, consolidação e testes.
+- [ ] Validar nacionalmente as 27 UFs e gerar auditoria reproduzível.
 
-**Não há dados do segundo turno processados ou validados neste commit inicial.** A execução nacional só poderá ser declarada concluída depois que a fonte oficial estiver identificada, as 27 UFs forem processadas e a consolidação passar pelas verificações de integridade.
+**Ainda não há dados do segundo turno processados ou validados.** A execução nacional só poderá ser declarada concluída depois que a fonte oficial estiver identificada, as 27 UFs forem processadas e a consolidação passar pelas verificações de integridade.
 
-## Fonte oficial
+## Fonte oficial e situação da verificação
 
-- [Portal de Dados Abertos do TSE — Resultados 2026 - Boletim de Urna](https://dadosabertos.tse.jus.br/dataset/resultados-2026-boletim-de-urna)
-- [Conjuntos de dados do TSE etiquetados Ano 2026](https://dadosabertos.tse.jus.br/dataset/?tags=Ano+2026)
+- [TSE — Resultados 2026: Boletim de Urna](https://dadosabertos.tse.jus.br/dataset/resultados-2026-boletim-de-urna)
+- [Catálogo TSE — Ano 2026](https://dadosabertos.tse.jus.br/dataset/?tags=Ano+2026)
 
-A página do conjunto de BU informa que o conjunto abrange 1º e 2º turnos, mas a listagem pública consultada nesta etapa exibe recursos identificados como primeiro turno. A disponibilidade, o nome e a estrutura dos arquivos de BU específicos do segundo turno ainda precisam ser confirmados diretamente na fonte. Não reutilizar URLs, sufixos de ZIP, códigos de voto ou hashes do primeiro turno sem validação.
+A página oficial do conjunto de BU afirma que os dados abrangem o 1º e o 2º turnos, mas a listagem de recursos visível na consulta de 26/10/2026 apresenta arquivos identificados como **Primeiro turno**. Portanto, a URL, o nome, a disponibilidade e o esquema dos arquivos de BU do segundo turno ainda não estão confirmados. Não inferir um sufixo de arquivo a partir do primeiro turno nem testar URLs presumidas como se fossem fontes oficiais verificadas.
+
+## Estratégia de implementação
+
+Reproduzir, com paths e nomes específicos do segundo turno, a arquitetura já usada no primeiro turno:
+
+1. Download dos recursos oficiais por UF, com registro da URL de origem e validação do hash SHA2 publicado pelo TSE, quando disponível.
+2. Processamento incremental em chunks, persistência temporária em SQLite e agregação por chave oficial de seção.
+3. Validação dos campos e códigos observados no arquivo real antes de mapear candidatos, branco e nulo.
+4. Geração de CSVs por UF e tabela nacional consolidada.
+5. Auditoria de cobertura, duplicidades, valores negativos, somas, comparecimento, eleitorado e consistência entre arquivos.
+6. Testes automatizados e execução nacional apenas após validar a UF piloto.
 
 ## Regras de integridade
 
-- Usar somente dados oficiais, preservando a URL, data de obtenção e hash de cada arquivo.
-- Nunca fabricar linhas de BU nem inferir seções ausentes.
-- Não alterar silenciosamente códigos de candidatos ou de votos brancos/nulos.
-- Não commitar arquivos ZIP brutos ou grandes dados derivados sem necessidade.
+- Usar dados oficiais e registrar URL, data/hora de obtenção, hash e versão do esquema.
+- Nunca fabricar linhas de BU nem inferir seções ausentes; ausência não equivale a zero.
+- Não alterar silenciosamente códigos de candidatos ou votos brancos/nulos.
+- Não commitar ZIPs brutos ou grandes dados derivados sem necessidade.
 - Preservar os dados do primeiro turno no repositório original.
 - Validar chaves de seção, duplicidades, valores negativos, totais, comparecimento, metadados e consistência entre arquivos.
 - Processar arquivos grandes em streaming/chunks quando necessário.
-- Registrar explicitamente limitações e falhas; ausência de dado não equivale a zero.
 - Não declarar conclusão nacional sem cobertura das 27 UFs e consolidação validada.
 
-## Plano de análises
+## Análises previstas
 
-1. **Descritivas por seção, município e UF:** votos, comparecimento, abstenção e cobertura dos arquivos.
-2. **Emissão e recebimento dos BUs:** somente se os campos e sua semântica forem confirmados no arquivo oficial do segundo turno.
-3. **Comparação entre turnos:** alinhar seções por chave oficial e documentar seções ausentes, mudanças de local e diferenças de eleitorado/comparecimento.
-4. **Inferência ecológica exploratória:** avaliar regressão ecológica de Goodman e o método de inferência ecológica de Gary King apenas se as tabelas agregadas e pressupostos forem apropriados. Não apresentar estimativas como trajetórias observadas de eleitores individuais.
-
-## Inferência ecológica: limites interpretativos
-
-Os BUs são dados agregados por seção, não registros individuais ligando o voto de uma pessoa no primeiro turno ao voto dela no segundo. Portanto, qualquer estimativa de transição individual entre opções de voto será inferencial, dependente de pressupostos e sujeita a incerteza.
-
-A regressão de Goodman pode produzir estimativas fora dos limites possíveis e é sensível a pressupostos sobre homogeneidade/independência entre composição da unidade e comportamento. Métodos de King (EI) modelam a incerteza e impõem limites factíveis, mas também dependem de pressupostos e não recuperam observações individuais inexistentes. O projeto deverá apresentar intervalos, diagnósticos, análises de sensibilidade e limites determinísticos, não apenas estimativas pontuais. Se os pressupostos não puderem ser defendidos, limitar a análise a padrões agregados descritivos.
-
-Referências metodológicas iniciais:
-- [King, Rosen, Tanner — Ecological Inference](https://www.cambridge.org/core/books/ecological-inference/9ABBC9189A3F2557CDB6120EFF459A6A)
-- [Artigo metodológico sobre Goodman e inferência ecológica (Springer)](https://link.springer.com/article/10.1007/s11135-017-0481-z)
-- [Ecological inference (revisão em PMC)](https://pmc.ncbi.nlm.nih.gov/articles/PMC33746/)
+Somente análises descritivas dos dados observados: votos por seção, município e UF; comparecimento e abstenção; metadados de emissão/recebimento do BU se confirmados no esquema oficial; e comparação descritiva entre turnos após alinhar as chaves de seção e documentar mudanças de cobertura, local e eleitorado. Não estimar trajetórias individuais de eleitores a partir de margens agregadas.
 
 ## Próxima etapa técnica
 
-Confirmar os recursos e arquivos oficiais de BU do segundo turno. Em seguida, baixar uma UF piloto, verificar o hash publicado pelo TSE, inspecionar cabeçalhos e códigos reais e só então adaptar o pipeline. Não presumir que substituir o padrão de arquivo de primeiro turno pelo de segundo turno no downloader seja suficiente.
+Confirmar o recurso oficial do segundo turno. Em seguida, baixar uma UF piloto, conferir o hash publicado pelo TSE, inspecionar cabeçalhos, codificação, delimitador, códigos de cargo/votação e campos temporais e só então adaptar os scripts do primeiro turno. Não presumir que basta trocar `1t` por `2t` no downloader.
