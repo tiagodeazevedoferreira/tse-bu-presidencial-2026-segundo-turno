@@ -1,0 +1,26 @@
+﻿# Fonte original do TSE — não versionar
+/votacao_secao_2026_BR.csv
+
+# Dados e artefatos do piloto de coleta de BU
+/bu-teste.dat
+/bu_2026.asn1
+/o03221sp6106902390162-vota.vsc
+/coletar_piloto_100.py.bak
+/coletar_piloto_100.py.csv.bak
+/coletar_piloto_100.py.pre_lote_200.bak
+/coletar_piloto_100.py.resumo.bak
+/coletar_piloto_100.py.retoma.bak
+/coletar_piloto_100.py.validas.bak
+/__pycache__/
+/dados_bu/
+/dados_bu_piloto_100/
+/piloto_100_checkpoint/
+/relatorio_amostra.csv
+/relatorio_piloto_100.csv
+/resultado_secao_0162.csv
+/resultados_amostra.csv
+/resultados_piloto_100.csv
+/status_piloto_100.json
+
+# Ambiente Python
+*.pyc
