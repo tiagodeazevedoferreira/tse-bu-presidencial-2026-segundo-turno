@@ -288,11 +288,11 @@ function parseCsvLine(line){
   out.push(value);return out;
 }
 function normalizeHeader(value){
-  return value.replace(/^\\uFEFF/,"").trim()
+  return value.replace(/^\uFEFF/,"").trim()
     .replace(/Ã¡/gi,"a").replace(/Ã£/gi,"a").replace(/Ã¢/gi,"a").replace(/Ã©/gi,"e")
     .replace(/Ãª/gi,"e").replace(/Ã­/gi,"i").replace(/Ã³/gi,"o").replace(/Ã´/gi,"o")
     .replace(/Ãµ/gi,"o").replace(/Ãº/gi,"u").replace(/Ã§/gi,"c")
-    .replace(/\\?/g,"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"")
+    .replace(/\?/g,"").normalize("NFD").replace(/[\u0300-\u036f]/g,"")
     .toLowerCase().replace(/[^a-z0-9]/g,"");
 }
 async function load(){
