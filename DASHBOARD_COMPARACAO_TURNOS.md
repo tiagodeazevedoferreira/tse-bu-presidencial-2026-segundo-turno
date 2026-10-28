@@ -43,6 +43,19 @@ O workflow `.github/workflows/pages-comparacao-turnos.yml` publica o `index.html
 
 Para ativar a versão com dados, o arquivo `data/dashboard/votos_turnos_2026.json.gz` precisa estar commitado no repositório. Não inclua o CSV bruto.
 
+## Análise de casos extremos
+
+A visão "Análise de casos extremos" trabalha no nível de seção eleitoral e reaproveita os votos já publicados no JSON do dashboard. O limite inicial é inclusivo: 100 votos.
+
+Tipos de ocorrência:
+
+- **Zero votos contra 100 ou mais no mesmo turno:** Lula = 0 e Flávio >= 100, ou Flávio = 0 e Lula >= 100, avaliados separadamente no 1º e no 2º turno.
+- **Mudança entre turnos:** para um mesmo candidato, 0 no 1º turno e >= 100 no 2º, ou >= 100 no 1º turno e 0 no 2º.
+
+Uma seção que satisfaça várias regras aparece uma única vez, com todos os motivos listados. Se o campo v2 for null, o segundo turno é tratado como ausente, nunca como zero; por isso, essa seção não pode satisfazer uma regra de mudança entre turnos nem uma regra de zero no segundo turno. A visão respeita os filtros geográficos existentes e exibe até 500 ocorrências por vez, ordenadas pela maior quantidade de votos observada. O total de ocorrências encontradas é informado separadamente.
+
+Esses critérios são sinalizadores para investigação, não evidência de irregularidade ou de transferência individual de votos. Antes de interpretar um caso, confira os valores originais da seção e a cobertura do turno.
+
 ## Definições
 
 - Variação absoluta = votos do 2º turno menos votos do 1º turno.
