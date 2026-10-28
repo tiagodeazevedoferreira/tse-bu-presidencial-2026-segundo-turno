@@ -265,8 +265,6 @@ function render(){
   const rows=filtered(), t=totals(rows);
   renderCandidate("lula",1,"lula",t);
   renderCandidate("flavio",0,"flavio",t);
-  setText("blankTotal",fmt(t.v1[2])+" → "+fmt(t.v2[2]));setText("blankDelta","Variação: "+deltaText(t.v2[2]-t.v1[2])+" ("+pct(changePct(t.v1[2],t.v2[2]))+")");
-  setText("nullTotal",fmt(t.v1[3])+" → "+fmt(t.v2[3]));setText("nullDelta","Variação: "+deltaText(t.v2[3]-t.v1[3])+" ("+pct(changePct(t.v1[3],t.v2[3]))+")");
   setText("sections1",fmt(t.n1));setText("sections2",fmt(t.n2));setText("sectionsBoth",fmt(t.both)+" seções presentes nos dois turnos");
   setText("filterSummary",fmt(rows.length)+" seções no recorte · "+fmt(t.both)+" com dados nos dois turnos");
   renderBars(t);renderTable(rows);
