@@ -13,7 +13,7 @@ from tools.audit_dashboard_csv import detect_delimiter, main, normalize, parse_i
 
 class AuditHelpersTests(unittest.TestCase):
     def test_normalize_header_with_accents_and_symbols(self):
-        self.assertEqual(normalize("Flávio 1º turno"), "flavio1turno")
+        self.assertEqual(normalize("Flávio 1º turno"), "flavio1oturno")
         self.assertEqual(normalize("\ufeffSeção eleitoral"), "secaoeleitoral")
 
     def test_parse_integer_distinguishes_blank_invalid_and_negative(self):
