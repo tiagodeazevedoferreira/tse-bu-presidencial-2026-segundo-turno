@@ -148,6 +148,7 @@ function matches(r,skipId){
   return true;
 }
 function optionsFor(f){
+  if(f.id==="section"&&!$("zone").value)return [];
   const upto=FIELDS.findIndex(x=>x.id===f.id);
   const rows=records.filter(r=>FIELDS.slice(0,upto).every(prior=>{
     const value=$(prior.id).value;
