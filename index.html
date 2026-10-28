@@ -307,12 +307,12 @@ async function load(){
     const col=names=>header.findIndex(h=>names.includes(h));
     const ix={
       uf:col(["uf"]),
-      mun:col(["municipio","municipionome"]),
+      mun:col(["municipio","municipionome","municpio"]),
       zone:col(["zona","zonaeleitoral"]),
       section:col(["secao","secaoeleitoral","seo"]),
       local:col(["localdevotacao","localdevotao","local"]),
-      f1:col(["flavio1turno","flavio1oturno"]),
-      f2:col(["flavio2turno","flavio2oturno"]),
+      f1:col(["flavio1turno","flavio1oturno","flvio1turno"]),
+      f2:col(["flavio2turno","flavio2oturno","flvio2turno"]),
       l1:col(["lula1turno","lula1oturno"]),
       l2:col(["lula2turno","lula2oturno"])
     };
