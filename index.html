@@ -136,6 +136,7 @@ const FIELDS = [
 ];
 let records = [];
 let coverage = {};
+let extremeCaseCache = {all:[],zero_vs_many:[],cross_turn:[]};
 const $ = id => document.getElementById(id);
 const fmt = n => Number(n||0).toLocaleString("pt-BR");
 const pct = n => n===null || !Number.isFinite(n) ? "não calculável" : (n>0?"+":"")+n.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})+"%";
@@ -306,7 +307,7 @@ function detectExtremeCases(rows,mode){
 }
 function renderExtremeCases(rows){
   const mode=$("caseMode").value;
-  const found=detectExtremeCases(rows,mode);
+  const found=extremeCaseCache[mode].filter(({r})=>matches(r,null));
   const shown=found.slice(0,500);
   setText("caseSummary",fmt(found.length)+" seções correspondem ao critério neste recorte. "+(found.length>shown.length?"Exibindo as primeiras 500, ordenadas pela maior quantidade de votos.":"Todas as ocorrências encontradas estão exibidas.")+" Seções sem dados no 2º turno não são classificadas como zero nesse turno.");
   if(!shown.length){
@@ -348,6 +349,8 @@ async function load(){
     const data=await new Response(stream).json();
     if(data.schemaVersion!==1||!Array.isArray(data.records))throw new Error("Formato de dados inesperado.");
     records=data.records;coverage=data.coverage||{};
+    $("status").textContent="Preparando análise de casos extremos…";
+    extremeCaseCache={all:detectExtremeCases(records,"all"),zero_vs_many:detectExtremeCases(records,"zero_vs_many"),cross_turn:detectExtremeCases(records,"cross_turn")};
     $("status").textContent=fmt(records.length)+" seções carregadas";
     $("missing").hidden=true;
     if(coverage.onlyRound1||coverage.onlyRound2){
