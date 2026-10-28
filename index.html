@@ -41,7 +41,7 @@
     <div class="filter-foot"><span id="filterSummary">Carregando dados…</span><span id="status" class="status">Preparando dashboard…</span></div>
   </section>
 
-  <div id="missing" class="notice" hidden>O conjunto de dados processado ainda não está publicado. Execute o gerador local descrito no README da branch e publique o arquivo <code>data/dashboard/votos_turnos_2026.json.gz</code> junto com este dashboard.</div>
+  <div id="missing" class="notice" hidden>O arquivo <code>data/NovoArquivoDashboard.csv</code> ainda não foi carregado. Verifique se o CSV está publicado no repositório e se o GitHub Pages concluiu a implantação.</div>
   <div id="coverageNotice" class="notice" hidden></div>
 
   <section class="card">
@@ -75,10 +75,9 @@
   <section class="card">
     <h2 class="section-title">Big numbers do recorte</h2>
     <div class="context-grid">
-      <div class="context-kpi"><div class="label">Brancos · 1º → 2º turno</div><div id="blankTotal" class="value">—</div><div id="blankDelta" class="num-sub">—</div></div>
-      <div class="context-kpi"><div class="label">Nulos · 1º → 2º turno</div><div id="nullTotal" class="value">—</div><div id="nullDelta" class="num-sub">—</div></div>
-      <div class="context-kpi"><div class="label">Seções com dados no 1º turno</div><div id="sections1" class="value">—</div><div class="num-sub">Dentro dos filtros atuais</div></div>
-      <div class="context-kpi"><div class="label">Seções com dados no 2º turno</div><div id="sections2" class="value">—</div><div id="sectionsBoth" class="num-sub">—</div></div>
+      
+      <div class="context-kpi"><div class="label">Seções na base</div><div id="sections1" class="value">—</div><div class="num-sub">Dentro dos filtros atuais</div></div>
+      <div class="context-kpi"><div class="label">Seções comparadas</div><div id="sections2" class="value">—</div><div id="sectionsBoth" class="num-sub">—</div></div>
     </div>
   </section>
 
@@ -99,14 +98,15 @@
     </tr></thead><tbody id="detailRows"><tr><td colspan="9" class="empty">Aguardando dados…</td></tr></tbody></table></div>
   </section>
 
-  <footer class="footer">Fonte dos votos: arquivo de votação por seção das Eleições 2026 do Tribunal Superior Eleitoral (TSE). A comparação usa os códigos de votação 13 (Lula), 22 (Flávio Bolsonaro), 95 (branco) e 96 (nulo). O aumento ou a redução entre turnos é uma diferença agregada; não permite identificar transferência individual de votos. Se uma seção existir em apenas um turno, a cobertura é indicada separadamente e o valor ausente não é tratado como zero.</footer>
+  <footer class="footer">Fonte dos votos: arquivo de votação por seção das Eleições 2026 do Tribunal Superior Eleitoral (TSE). A base contém votos de Lula e Flávio Bolsonaro em cada turno; votos brancos e nulos não estão disponíveis neste arquivo. O aumento ou a redução entre turnos é uma diferença agregada; não permite identificar transferência individual de votos. Se uma seção existir em apenas um turno, a cobertura é indicada separadamente e o valor ausente não é tratado como zero.</footer>
 </div>
 <script>
 (function(){
 "use strict";
-const URL_DATA = "data/dashboard/votos_turnos_2026.json.gz";
+const URL_DATA = "data/NovoArquivoDashboard.csv";
 const ORDER = ["flavio","lula","branco","nulo"];
-const LABELS = {flavio:"Flávio Bolsonaro",lula:"Lula",branco:"Brancos",nulo:"Nulos"};
+const LABELS = {flavio:"Flávio Bolsonaro",lula:"Lula"};
+const REGIONS = {AC:"Norte",AP:"Norte",AM:"Norte",PA:"Norte",RO:"Norte",RR:"Norte",TO:"Norte",AL:"Nordeste",BA:"Nordeste",CE:"Nordeste",MA:"Nordeste",PB:"Nordeste",PE:"Nordeste",PI:"Nordeste",RN:"Nordeste",SE:"Nordeste",DF:"Centro-Oeste",GO:"Centro-Oeste",MT:"Centro-Oeste",MS:"Centro-Oeste",ES:"Sudeste",MG:"Sudeste",RJ:"Sudeste",SP:"Sudeste",PR:"Sul",RS:"Sul",SC:"Sul",ZZ:"Exterior"};
 const FIELDS = [
   {id:"region",key:"r",label:"Região",all:"Brasil inteiro"},
   {id:"uf",key:"u",label:"UF",all:"Todas as UFs"},
@@ -274,30 +274,55 @@ function render(){
     notice.hidden=false;notice.textContent="A cobertura dos turnos difere neste recorte: "+fmt(t.n1)+" seções no 1º turno, "+fmt(t.n2)+" no 2º e "+fmt(t.both)+" presentes em ambos. Os totais somam os registros disponíveis em cada turno; a diferença de votos não deve ser interpretada como crescimento em um conjunto idêntico de seções sem considerar essa cobertura.";
   }else{notice.hidden=true}
 }
+function parseCsvLine(line){
+  const out=[];let value="",quoted=false;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(ch==='"'){
+      if(quoted&&line[i+1]==='"'){value+='"';i++}
+      else quoted=!quoted;
+    }else if(ch===";"&&!quoted){out.push(value);value=""}
+    else value+=ch;
+  }
+  out.push(value);return out;
+}
+function normalizeHeader(value){
+  return value.replace(/^\\uFEFF/,"").trim().normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase();
+}
 async function load(){
-  $("status").textContent="Baixando conjunto de dados…";
+  $("status").textContent="Baixando CSV do dashboard…";
   try{
     const response=await fetch(URL_DATA,{cache:"no-cache"});
     if(!response.ok)throw new Error("HTTP "+response.status);
-    const compressed=await response.arrayBuffer();
-    if(!("DecompressionStream" in window))throw new Error("Este navegador não oferece descompressão gzip nativa.");
-    const stream=new Blob([compressed]).stream().pipeThrough(new DecompressionStream("gzip"));
-    const data=await new Response(stream).json();
-    if(data.schemaVersion!==1||!Array.isArray(data.records))throw new Error("Formato de dados inesperado.");
-    records=data.records;coverage=data.coverage||{};
-    $("status").textContent=fmt(records.length)+" seções carregadas";
-    $("missing").hidden=true;
-    if(coverage.onlyRound1||coverage.onlyRound2){
-      $("coverageNotice").hidden=false;
-      $("coverageNotice").textContent="O arquivo contém seções com cobertura diferente entre os turnos: "+fmt(coverage.onlyRound1||0)+" apenas no 1º turno e "+fmt(coverage.onlyRound2||0)+" apenas no 2º. O painel informa a cobertura de cada recorte e não transforma ausência de registro em zero.";
+    const csv=await response.text();
+    const lines=csv.split(/\\r?\\n/);
+    if(lines.length<2)throw new Error("CSV vazio ou sem linhas de dados.");
+    const header=parseCsvLine(lines[0]).map(normalizeHeader);
+    const col=names=>header.findIndex(h=>names.includes(h));
+    const ix={uf:col(["uf"]),mun:col(["municipio"]),zone:col(["zona"]),section:col(["secao"]),local:col(["local de votacao"]),f1:col(["flavio - 1o turno","flavio - 1º turno","flavio - 1? turno"]),f2:col(["flavio - 2o turno","flavio - 2º turno","flavio - 2? turno"]),l1:col(["lula - 1o turno","lula - 1º turno","lula - 1? turno"]),l2:col(["lula - 2o turno","lula - 2º turno","lula - 2? turno"])};
+    const missing=Object.entries(ix).filter(([,v])=>v<0).map(([k])=>k);
+    if(missing.length)throw new Error("Colunas ausentes no CSV: "+missing.join(", "));
+    records=[];
+    for(let i=1;i<lines.length;i++){
+      const line=lines[i];if(!line.trim())continue;
+      const row=parseCsvLine(line);
+      const uf=(row[ix.uf]||"").trim(),mun=(row[ix.mun]||"").trim(),zone=(row[ix.zone]||"").trim(),section=(row[ix.section]||"").trim(),local=(row[ix.local]||"").trim();
+      if(!uf||!mun||!zone||!section)continue;
+      const number=k=>{const raw=(row[ix[k]]||"").trim();if(!raw)return 0;const n=Number(raw.replace(/\\./g,"").replace(",", "."));return Number.isFinite(n)?n:0};
+      records.push({u:uf,r:REGIONS[uf]||"Outras",m:mun,n:mun,z:zone,s:section,l:local,ln:local,a:"",v1:[number("f1"),number("l1"),0,0],v2:[number("f2"),number("l2"),0,0]});
     }
+    if(!records.length)throw new Error("Nenhuma linha válida foi encontrada no CSV.");
+    $("status").textContent=fmt(records.length)+" seções carregadas do CSV";
+    $("missing").hidden=true;
+    $("coverageNotice").hidden=false;
+    $("coverageNotice").textContent="Esta base contém votos de Lula e Flávio por seção nos dois turnos. Votos brancos e nulos, códigos oficiais de município e número do local não fazem parte do arquivo; por isso, o dashboard não os apresenta como dados disponíveis.";
     render();
   }catch(err){
     console.error(err);
     $("status").textContent="Dados não carregados";
     $("missing").hidden=false;
-    $("missing").innerHTML='Não foi possível carregar <code>'+URL_DATA+'</code> ('+String(err.message||err)+'). O dashboard HTML está publicado, mas depende do conjunto compactado gerado a partir do CSV oficial.';
-    $("detailRows").innerHTML='<tr><td colspan="9" class="empty">Publique o arquivo de dados compactado para ativar o painel.</td></tr>';
+    $("missing").innerHTML='Não foi possível carregar <code>'+URL_DATA+'</code> ('+String(err.message||err)+'). Verifique se o CSV está publicado e se o GitHub Pages concluiu a implantação.';
+    $("detailRows").innerHTML='<tr><td colspan="9" class="empty">Não foi possível carregar o CSV.</td></tr>';
   }
 }
 for(const f of FIELDS)$(f.id).addEventListener("change",()=>{updateFilters();render()});
