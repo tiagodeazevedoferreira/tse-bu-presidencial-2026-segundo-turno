@@ -296,7 +296,7 @@ async function load(){
     const response=await fetch(URL_DATA,{cache:"no-cache"});
     if(!response.ok)throw new Error("HTTP "+response.status);
     const csv=await response.text();
-    const lines=csv.split(/\\r?\\n/);
+    const lines=csv.split(/\r?\n/);
     if(lines.length<2)throw new Error("CSV vazio ou sem linhas de dados.");
     const header=parseCsvLine(lines[0]).map(normalizeHeader);
     const col=names=>header.findIndex(h=>names.includes(h));
@@ -309,7 +309,7 @@ async function load(){
       const row=parseCsvLine(line);
       const uf=(row[ix.uf]||"").trim(),mun=(row[ix.mun]||"").trim(),zone=(row[ix.zone]||"").trim(),section=(row[ix.section]||"").trim(),local=(row[ix.local]||"").trim();
       if(!uf||!mun||!zone||!section)continue;
-      const number=k=>{const raw=(row[ix[k]]||"").trim();if(!raw)return 0;const n=Number(raw.replace(/\\./g,"").replace(",", "."));return Number.isFinite(n)?n:0};
+      const number=k=>{const raw=(row[ix[k]]||"").trim();if(!raw)return 0;const n=Number(raw.replace(/\./g,"").replace(",", "."));return Number.isFinite(n)?n:0};
       records.push({u:uf,r:REGIONS[uf]||"Outras",m:mun,n:mun,z:zone,s:section,l:local,ln:local,a:"",v1:[number("f1"),number("l1"),0,0],v2:[number("f2"),number("l2"),0,0]});
     }
     if(!records.length)throw new Error("Nenhuma linha válida foi encontrada no CSV.");
