@@ -288,7 +288,12 @@ function parseCsvLine(line){
   out.push(value);return out;
 }
 function normalizeHeader(value){
-  return value.replace(/^\uFEFF/,"").trim().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\?/g,"").toLowerCase();
+  return value.replace(/^\\uFEFF/,"").trim()
+    .replace(/Ã¡/gi,"a").replace(/Ã£/gi,"a").replace(/Ã¢/gi,"a").replace(/Ã©/gi,"e")
+    .replace(/Ãª/gi,"e").replace(/Ã­/gi,"i").replace(/Ã³/gi,"o").replace(/Ã´/gi,"o")
+    .replace(/Ãµ/gi,"o").replace(/Ãº/gi,"u").replace(/Ã§/gi,"c")
+    .replace(/\\?/g,"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"")
+    .toLowerCase().replace(/[^a-z0-9]/g,"");
 }
 async function load(){
   $("status").textContent="Baixando CSV do dashboard…";
@@ -300,7 +305,17 @@ async function load(){
     if(lines.length<2)throw new Error("CSV vazio ou sem linhas de dados.");
     const header=parseCsvLine(lines[0]).map(normalizeHeader);
     const col=names=>header.findIndex(h=>names.includes(h));
-    const ix={uf:col(["uf"]),mun:col(["municipio"]),zone:col(["zona"]),section:col(["secao"]),local:col(["local de votacao"]),f1:col(["flavio - 1o turno","flavio - 1º turno","flavio - 1 turno"]),f2:col(["flavio - 2o turno","flavio - 2º turno","flavio - 2 turno"]),l1:col(["lula - 1o turno","lula - 1º turno","lula - 1 turno"]),l2:col(["lula - 2o turno","lula - 2º turno","lula - 2 turno"])};
+    const ix={
+      uf:col(["uf"]),
+      mun:col(["municipio","municipionome"]),
+      zone:col(["zona","zonaeleitoral"]),
+      section:col(["secao","secaoeleitoral"]),
+      local:col(["localdevotacao","local"]),
+      f1:col(["flavio1turno","flavio1oturno"]),
+      f2:col(["flavio2turno","flavio2oturno"]),
+      l1:col(["lula1turno","lula1oturno"]),
+      l2:col(["lula2turno","lula2oturno"])
+    };
     const missing=Object.entries(ix).filter(([,v])=>v<0).map(([k])=>k);
     if(missing.length)throw new Error("Colunas ausentes no CSV: "+missing.join(", "));
     records=[];
