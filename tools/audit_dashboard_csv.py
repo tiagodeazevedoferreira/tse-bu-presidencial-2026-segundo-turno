@@ -184,8 +184,10 @@ def main() -> int:
                         })
 
                 values: dict[str, int | None] = {}
+                raw_values: dict[str, str] = {}
                 for name in NUMERIC_FIELDS:
                     raw = get(name)
+                    raw_values[name] = raw
                     parsed, error = parse_integer(raw)
                     values[name] = parsed
                     stats = numeric_stats[name]
@@ -219,7 +221,7 @@ def main() -> int:
                             stats["max_row"] = row_number
 
                 for turn, a, b in (("1", "flavio1", "lula1"), ("2", "flavio2", "lula2")):
-                    if (values[a] is None) != (values[b] is None):
+                    if (not raw_values[a]) != (not raw_values[b]):
                         counters[f"partial_turn_{turn}"] += 1
                         add_example("partial_turn", {
                             "linha": row_number, "turno": turn,
