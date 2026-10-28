@@ -1,0 +1,100 @@
+{
+  "arquivo": "data\\NovoArquivoDashboard.csv",
+  "tamanho_bytes": 37561673,
+  "delimitador_detectado": "';'",
+  "cabecalhos": [
+    "",
+    "UF",
+    "Munic?pio",
+    "Zona",
+    "Se??o",
+    "Local de vota??o",
+    "Fl?vio - 1? turno",
+    "Fl?vio - 2? turno",
+    "Lula - 1? turno",
+    "Lula - 2? turno"
+  ],
+  "colunas_mapeadas": {
+    "uf": 1,
+    "municipio": 2,
+    "zona": 3,
+    "secao": 4,
+    "local": 5,
+    "flavio1": 6,
+    "flavio2": 7,
+    "lula1": 8,
+    "lula2": 9
+  },
+  "status": "concluido",
+  "resumo": {
+    "linhas_de_dados": 499205,
+    "linhas_vazias": 0,
+    "linhas_com_quantidade_de_colunas_incorreta": 0,
+    "linhas_com_chave_geografica_incompleta": 0,
+    "chaves_de_secao_unicas": 499205,
+    "linhas_com_chave_de_secao_duplicada": 0,
+    "linhas_com_voto_negativo": 0,
+    "linhas_com_valor_numerico_invalido": 0,
+    "linhas_com_votos_parciais_no_1_turno": 0,
+    "linhas_com_votos_parciais_no_2_turno": 0
+  },
+  "estatisticas_numericas": {
+    "flavio1": {
+      "present": 499205,
+      "blank": 0,
+      "invalid": 0,
+      "negative": 0,
+      "zero": 80,
+      "positive": 499125,
+      "sum": 56104503,
+      "max": 344,
+      "max_row": 5481
+    },
+    "flavio2": {
+      "present": 499205,
+      "blank": 0,
+      "invalid": 0,
+      "negative": 0,
+      "zero": 106,
+      "positive": 499099,
+      "sum": 59826041,
+      "max": 411,
+      "max_row": 335858
+    },
+    "lula1": {
+      "present": 499205,
+      "blank": 0,
+      "invalid": 0,
+      "negative": 0,
+      "zero": 8,
+      "positive": 499197,
+      "sum": 53879536,
+      "max": 469,
+      "max_row": 453016
+    },
+    "lula2": {
+      "present": 499205,
+      "blank": 0,
+      "invalid": 0,
+      "negative": 0,
+      "zero": 4,
+      "positive": 499201,
+      "sum": 64256232,
+      "max": 502,
+      "max_row": 405858
+    }
+  },
+  "exemplos": {
+    "duplicate_keys": [],
+    "invalid_numeric": [],
+    "negative_votes": [],
+    "missing_location": [],
+    "partial_turn": []
+  },
+  "interpretacao": [
+    "Campos vazios são contabilizados como ausentes, não convertidos em zero.",
+    "Uma chave duplicada é um alerta para revisão; não é removida nem prova, isoladamente, de erro.",
+    "A auditoria não verifica a veracidade eleitoral contra o TSE; compara apenas estrutura e consistência interna do CSV.",
+    "A soma de votos e os máximos são estatísticas descritivas, não limites oficiais de plausibilidade."
+  ]
+}
