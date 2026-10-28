@@ -96,7 +96,6 @@ def main() -> int:
     headers: list[str] = []
     mapping: dict[str, int] = {}
     delimiter = ";"
-    first_data_line = 0
     duplicate_count = 0
     duplicate_db = tempfile.NamedTemporaryFile(prefix="tse-audit-", suffix=".sqlite3", delete=False)
     duplicate_db_path = Path(duplicate_db.name)
@@ -196,11 +195,14 @@ def main() -> int:
                         stats["invalid"] += 1
                         if error == "negative":
                             stats["negative"] += 1
+                            counters["negative_votes"] += 1
+                            counters["invalid_numeric"] += 1
                             add_example("negative_votes", {
                                 "linha": row_number, "campo": name, "valor": raw,
                                 "uf": uf, "municipio": municipality, "zona": zone, "secao": section
                             })
                         else:
+                            counters["invalid_numeric"] += 1
                             add_example("invalid_numeric", {
                                 "linha": row_number, "campo": name, "valor": raw,
                                 "uf": uf, "municipio": municipality, "zona": zone, "secao": section
