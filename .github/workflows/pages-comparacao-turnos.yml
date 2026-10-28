@@ -7,6 +7,7 @@ on:
       - "index.html"
       - "tools/**"
       - "data/dashboard/**"
+      - "data/NovoArquivoDashboard.csv"
       - "DASHBOARD_COMPARACAO_TURNOS.md"
       - ".github/workflows/pages-comparacao-turnos.yml"
 
@@ -31,13 +32,14 @@ jobs:
 
       - name: Preparar site estático
         run: |
-          mkdir -p site/data/dashboard
+          mkdir -p site/data/dashboard site/data
           cp index.html site/index.html
-          if [ -f data/dashboard/votos_turnos_2026.json.gz ]; then
-            cp data/dashboard/votos_turnos_2026.json.gz site/data/dashboard/
-            echo "Dados compactados encontrados."
+          if [ -f data/NovoArquivoDashboard.csv ]; then
+            cp data/NovoArquivoDashboard.csv site/data/
+            echo "NovoArquivoDashboard.csv encontrado e incluído no site."
           else
-            echo "::warning::data/dashboard/votos_turnos_2026.json.gz ainda não existe; o painel exibirá um aviso de dados ausentes."
+            echo "::error::data/NovoArquivoDashboard.csv não foi encontrado."
+            exit 1
           fi
 
       - name: Upload do artefato do Pages
