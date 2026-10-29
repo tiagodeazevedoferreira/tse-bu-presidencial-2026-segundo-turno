@@ -33,6 +33,20 @@ class DiscoverNationalResourcesTests(unittest.TestCase):
             {"RR": "https://cdn.example/bweb_2t_RR_261020260742.zip"},
         )
 
+    def test_discovers_zip_when_ckan_resource_url_points_to_sha512_sidecar(self):
+        resources = [
+            {
+                "name": "RR - Boletim de Urna - Segundo turno",
+                "url": "https://cdn.tse.jus.br/estatistica/sead/eleicoes/eleicoes2026/buweb/bweb_2t_RR_261020260742.zip.sha512",
+            }
+        ]
+        self.assertEqual(
+            discover_resources(resources),
+            {
+                "RR": "https://cdn.tse.jus.br/estatistica/sead/eleicoes/eleicoes2026/buweb/bweb_2t_RR_261020260742.zip"
+            },
+        )
+
     def test_discovers_rr_from_public_page_when_ckan_omits_it(self):
         page_html = """
         <a href="https://cdn.tse.jus.br/estatistica/sead/eleicoes/eleicoes2026/buweb/bweb_2t_RR_261020260742.zip">BU RR</a>
