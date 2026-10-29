@@ -22,6 +22,17 @@ class DiscoverNationalResourcesTests(unittest.TestCase):
             },
         )
 
+    def test_prefers_latest_version_if_uf_has_multiple_resources(self):
+        resources = [
+            {"url": "https://cdn.example/bweb_2t_RR_251020260700.zip"},
+            {"url": "https://cdn.example/bweb_2t_RR_261020260742.zip"},
+        ]
+
+        self.assertEqual(
+            discover_resources(resources),
+            {"RR": "https://cdn.example/bweb_2t_RR_261020260742.zip"},
+        )
+
     def test_ignores_non_uf_and_non_zip_resources(self):
         resources = [
             {"url": "https://cdn.example/bweb_2t_XX_261020260742.zip"},
