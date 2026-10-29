@@ -105,6 +105,13 @@ def main():
     )
     pasta_piloto = pasta_temp / "tse_bu_piloto_rr"
 
+    parser.add_argument("--uf", default="RR", choices=[
+        "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO",
+        "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI",
+        "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO",
+    ])
+    parser.add_argument("--source-url", default=SOURCE_URL)
+    parser.add_argument("--hash-url")
     parser.add_argument(
         "--bu-zip",
         default=str(
@@ -127,6 +134,9 @@ def main():
     )
 
     args = parser.parse_args()
+    source_url = args.source_url
+    hash_url = args.hash_url or source_url + ".sha512"
+    uf = args.uf.upper()
 
     zip_path = Path(args.bu_zip)
     hash_path = Path(args.sha512)
@@ -155,10 +165,10 @@ def main():
     report = {
         "auditoria": "BU oficial do segundo turno versus dashboard",
         "executado_em_utc": datetime.now(timezone.utc).isoformat(),
-        "uf": "RR",
+        "uf": uf,
         "turno": 2,
-        "fonte_bu": SOURCE_URL,
-        "fonte_hash": HASH_URL,
+        "fonte_bu": source_url,
+        "fonte_hash": hash_url,
         "arquivo_bu": zip_path.name,
         "arquivo_hash": hash_path.name,
         "sha512_publicado": expected_hash,
@@ -199,7 +209,7 @@ def main():
             candidates = [
                 name for name in archive.namelist()
                 if name.lower().endswith(".csv")
-                and "bweb_2t_rr_" in name.lower()
+                and f"bweb_2t_{uf.lower()}_" in name.lower()
             ]
 
             if len(candidates) != 1:
@@ -256,7 +266,7 @@ def main():
                         row["NR_SECAO"].strip(),
                     )
 
-                    if key[0] != "RR":
+                    if key[0] != uf:
                         continue
 
                     bu_sections.add(key)
@@ -356,7 +366,7 @@ def main():
 
                 uf = row[columns["uf"]].strip().upper()
 
-                if uf != "RR":
+                if uf != args.uf.upper():
                     continue
 
                 dashboard_rows += 1
