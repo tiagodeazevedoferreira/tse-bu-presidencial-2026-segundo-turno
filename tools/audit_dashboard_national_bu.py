@@ -52,7 +52,7 @@ def sha512_file(path: Path) -> str:
 
 
 def discover_resources(resources: list[dict[str, Any]]) -> dict[str, str]:
-    """Retorna UF -> URL ZIP usando o nome real do arquivo na URL."""
+    """Retorna UF -> URL ZIP, inclusive quando o CKAN publica só o link SHA-512."""
     found: dict[str, tuple[str, str]] = {}
     pattern = re.compile(r"bweb_2t_([a-z]{2})_(.+)\.zip$", re.IGNORECASE)
     for resource in resources:
@@ -60,6 +60,11 @@ def discover_resources(resources: list[dict[str, Any]]) -> dict[str, str]:
         if not url:
             continue
         filename = urllib.parse.urlparse(url).path.rsplit("/", 1)[-1]
+        # Alguns recursos CKAN apontam para o sidecar .zip.sha512, não para o ZIP.
+        # O arquivo ZIP oficial correspondente usa a mesma URL sem o sufixo .sha512.
+        if filename.lower().endswith(".zip.sha512"):
+            filename = filename[:-len(".sha512")]
+            url = url[:-len(".sha512")]
         match = pattern.fullmatch(filename)
         if not match:
             continue
