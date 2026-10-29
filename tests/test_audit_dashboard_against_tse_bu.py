@@ -34,6 +34,7 @@ class AuditBuIntegrationTests(unittest.TestCase):
         hash_correto=True,
         duplicar_registro=False,
         remover_cabecalho=None,
+        uf="RR",
     ):
         headers = [
             header for header in BU_HEADERS
@@ -43,7 +44,7 @@ class AuditBuIntegrationTests(unittest.TestCase):
         registros = [{
             "NR_TURNO": "2",
             "DS_CARGO_PERGUNTA": "Presidente",
-            "SG_UF": "RR",
+            "SG_UF": uf,
             "NM_MUNICIPIO": "CAROEBE",
             "NR_ZONA": "4",
             "NR_SECAO": "141",
@@ -70,7 +71,7 @@ class AuditBuIntegrationTests(unittest.TestCase):
             zip_path, "w", zipfile.ZIP_DEFLATED
         ) as archive:
             archive.writestr(
-                "bweb_2t_rr_teste.csv",
+                f"bweb_2t_{uf.lower()}_teste.csv",
                 bu_csv.getvalue(),
             )
 
@@ -95,7 +96,7 @@ class AuditBuIntegrationTests(unittest.TestCase):
                 "Lula - 2º turno",
             ])
             writer.writerow([
-                "RR", "CAROEBE", "4", "141", "0", "100"
+                uf, "CAROEBE", "4", "141", "0", "100"
             ])
 
         return zip_path, hash_path, dashboard_path
@@ -106,17 +107,22 @@ class AuditBuIntegrationTests(unittest.TestCase):
         hash_correto=True,
         duplicar_registro=False,
         remover_cabecalho=None,
+        uf="RR",
     ):
         zip_path, hash_path, dashboard_path = self.criar_arquivos(
             root,
             hash_correto=hash_correto,
             duplicar_registro=duplicar_registro,
             remover_cabecalho=remover_cabecalho,
+            uf=uf,
         )
 
         report_path = root / "report.json"
         args = [
             "audit_dashboard_against_tse_bu.py",
+            "--uf", uf,
+            "--source-url", f"https://example.test/bweb_2t_{uf}_teste.zip",
+            "--hash-url", f"https://example.test/bweb_2t_{uf}_teste.zip.sha512",
             "--bu-zip", str(zip_path),
             "--sha512", str(hash_path),
             "--dashboard", str(dashboard_path),
