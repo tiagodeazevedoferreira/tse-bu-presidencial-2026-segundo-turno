@@ -51,8 +51,8 @@ def sha512_file(path: Path) -> str:
 
 def discover_resources(resources: list[dict[str, Any]]) -> dict[str, str]:
     """Retorna UF -> URL ZIP usando o nome real do arquivo na URL."""
-    found: dict[str, str] = {}
-    pattern = re.compile(r"bweb_2t_([a-z]{2})_[^/]+\.zip$", re.IGNORECASE)
+    found: dict[str, tuple[str, str]] = {}
+    pattern = re.compile(r"bweb_2t_([a-z]{2})_(.+)\.zip$", re.IGNORECASE)
     for resource in resources:
         url = str(resource.get("url") or "").strip()
         if not url:
@@ -64,10 +64,12 @@ def discover_resources(resources: list[dict[str, Any]]) -> dict[str, str]:
         uf = match.group(1).upper()
         if uf not in UFS:
             continue
-        # Se houver versões múltiplas, prioriza o recurso mais recentemente
-        # listado na API, substituindo a ocorrência anterior.
-        found[uf] = url
-    return found
+        version = match.group(2)
+        # Se houver mais de uma versão, seleciona o sufixo de data/hora
+        # lexicalmente mais recente, sem depender da ordem dos metadados.
+        if uf not in found or version > found[uf][0]:
+            found[uf] = (version, url)
+    return {uf: value[1] for uf, value in found.items()}
 
 
 def fetch_metadata() -> dict[str, Any]:
