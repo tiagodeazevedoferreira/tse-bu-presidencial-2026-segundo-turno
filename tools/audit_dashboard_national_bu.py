@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import concurrent.futures
 import hashlib
+import html
 import json
 import os
 import re
@@ -26,6 +27,7 @@ from typing import Any
 
 API_URL = "https://dadosabertos.tse.jus.br/api/3/action/package_show"
 DATASET_ID = "resultados-2026-boletim-de-urna"
+DATASET_PAGE_URL = "https://dadosabertos.tse.jus.br/dataset/resultados-2026-boletim-de-urna"
 TIMEOUT_SECONDS = 90
 USER_AGENT = "tse-bu-presidencial-2026-segundo-turno/0.2"
 UFS = [
@@ -70,6 +72,18 @@ def discover_resources(resources: list[dict[str, Any]]) -> dict[str, str]:
         if uf not in found or version > found[uf][0]:
             found[uf] = (version, url)
     return {uf: value[1] for uf, value in found.items()}
+
+
+def discover_resources_from_page(page_html: str) -> dict[str, str]:
+    """Descobre ZIPs oficiais na página pública quando o CKAN omite algum recurso."""
+    links = re.findall(r'''href=["']([^"']+)["']''', page_html, flags=re.IGNORECASE)
+    resources = []
+    for link in links:
+        url = urllib.parse.urljoin(DATASET_PAGE_URL, html.unescape(link))
+        filename = urllib.parse.urlparse(url).path.rsplit("/", 1)[-1]
+        if re.fullmatch(r"bweb_2t_[A-Za-z]{2}_.+\\.zip", filename, re.IGNORECASE):
+            resources.append({"url": url})
+    return discover_resources(resources)
 
 
 def fetch_metadata() -> dict[str, Any]:
@@ -216,6 +230,15 @@ def main() -> int:
         dataset = fetch_metadata()
         resources = dataset.get("resources", [])
         urls = discover_resources([r for r in resources if isinstance(r, dict)])
+        missing_from_api = [uf for uf in args.ufs if uf not in urls]
+        if missing_from_api:
+            try:
+                page_html = request_bytes(DATASET_PAGE_URL).decode("utf-8", errors="replace")
+                page_urls = discover_resources_from_page(page_html)
+                urls.update({uf: url for uf, url in page_urls.items() if uf not in urls})
+            except (OSError, urllib.error.URLError):
+                # Mantém os recursos já descobertos na API; as UFs ausentes serão reportadas.
+                pass
     except (OSError, ValueError, RuntimeError, urllib.error.URLError) as exc:
         summary = {
             "status": "falha_descoberta_recursos",
