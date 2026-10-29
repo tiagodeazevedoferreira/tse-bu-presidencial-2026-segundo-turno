@@ -1,6 +1,6 @@
 # Contexto de continuidade — projeto TSE 2026
 
-Última atualização: 28/10/2026.
+Última atualização: 29/10/2026.
 
 ## Repositórios e separação de escopo
 
@@ -32,7 +32,7 @@ Não confundir os dados/artefatos de uma frente com os da outra.
 
 - O repositório do segundo turno existe e tem branch padrão `main`.
 - `scripts/inspect_tse_bu_resources.py` consulta a API CKAN oficial e lista metadados, sem baixar ou processar os dados.
-- A fonte oficial de BU do segundo turno e seu hash ainda não estavam confirmados na última inspeção documentada.
+- Fonte oficial confirmada para o piloto de Roraima (RR), segundo turno: arquivo `bweb_2t_RR_261020260742.zip`, publicado no conjunto oficial de resultados por boletim de urna do TSE. O SHA-512 publicado confere com o arquivo baixado. Isso confirma a fonte e a integridade do arquivo do piloto, não a cobertura nacional.
 - A listagem consultada em 26/10/2026 mostrava recursos rotulados como “Primeiro turno”, embora a página do conjunto diga que cobre os dois turnos.
 - Não declarar que existe pipeline nacional de BU do segundo turno concluído ou validado sem confirmar a fonte e processar as 27 UFs.
 
@@ -89,11 +89,11 @@ Após corrigir alterações manuais introduzidas no Excel, a execução local da
 
 O usuário informou que os valores `0,01` nas colunas do Flávio eram alterações manuais feitas no Excel para facilitar a inspeção e que o valor original desses casos era zero. Foram restauradas 80 ocorrências na coluna do primeiro turno e 50 na do segundo turno. Foi criado localmente o backup `data/NovoArquivoDashboard.csv.backup`; não adicionar esse backup ao Git.
 
-Tamanho observado do CSV local corrigido: 37.561.673 bytes. O tamanho/diff do arquivo em relação à versão rastreada pelo Git ainda precisa ser revisado antes de decidir se a fonte corrigida deve ser incluída no PR. A auditoria verifica consistência estrutural interna; não compara automaticamente todos os votos com uma fonte independente do TSE.
+Tamanho observado do CSV local corrigido: 37.561.673 bytes. O tamanho/diff do arquivo em relação à versão rastreada pelo Git ainda precisa ser revisado antes de decidir se a fonte corrigida deve ser incluída no PR. Além da auditoria estrutural, foi executada uma comparação independente dos votos do segundo turno com os boletins de urna oficiais de Roraima. O piloto encontrou correspondência de todas as 1.519 chaves geográficas, sem divergências nos votos comparáveis de Lula e Flávio. A validação nacional e a comparação do primeiro turno continuam pendentes.
 
 ### Testes e GitHub Actions
 
-- Execução local: `py -m unittest discover -s tests -v` — 4 testes passaram.
+- Execução local mais recente: `py -m unittest discover -s tests -v` — 6 testes passaram, incluindo os testes de auditoria de BU.
 - GitHub Actions “Teste da auditoria do CSV”: execução nº 4 concluída com sucesso para o commit `3f831002efcfe0caf837d357bf416f982c1f13ea`.
 - PR nº 2 permanece aberto como rascunho, sem merge.
 - Os quatro arquivos de implementação da auditoria já estão rastreados na branch: `tools/audit_dashboard_csv.py`, `docs/PLANO-RADAR-ANOMALIAS.md`, `tests/test_audit_dashboard_csv.py` e `.github/workflows/test-auditoria-csv.yml`.

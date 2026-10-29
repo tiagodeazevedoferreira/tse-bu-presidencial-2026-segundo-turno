@@ -35,7 +35,7 @@ Se o relatório retornar \`schema_incompativel\`, confira os cabeçalhos registr
 - **Votos parciais por turno:** um candidato tem valor e o outro está ausente; distinguir ausência de dado de zero votos.
 - **Máximo e soma por campo:** estatísticas descritivas para inspeção, não prova de irregularidade.
 
-O script não declara um dado fraudulento nem valida o conteúdo contra o TSE. É a primeira etapa de qualidade da base.
+O script estrutural não declara um dado fraudulento e não substitui a comparação com uma fonte independente. A comparação com BU oficial é executada separadamente por `tools/audit_dashboard_against_tse_bu.py`.
 
 ## Decisões técnicas preliminares
 
@@ -81,6 +81,30 @@ O script não declara um dado fraudulento nem valida o conteúdo contra o TSE. �
 
 ## Critérios para avançar
 
-A auditoria deve ser executada localmente, porque o arquivo de 37 MB não foi inspecionado linha a linha nesta etapa. Antes de alterar o parser de produção ou migrar o formato, registrar o relatório, resolver incompatibilidades de esquema e confirmar que as somas agregadas correspondem ao comportamento esperado do dashboard atual.
+A auditoria estrutural do CSV já foi executada localmente. Ela verifica a consistência interna da base, mas não substitui a comparação independente dos votos com os boletins de urna do TSE. Essa comparação foi iniciada com um piloto do segundo turno em Roraima; a validação nacional e a comparação do primeiro turno continuam pendentes. Antes de alterar o parser de produção ou migrar o formato, registrar os relatórios, resolver incompatibilidades de esquema e confirmar que as somas agregadas correspondem ao comportamento esperado do dashboard atual.
 
 Anomalias estatísticas são sinais para conferência, não prova de fraude. Comparações agregadas entre turnos não identificam o caminho individual de votos.
+
+## Auditoria independente de votos - piloto de Roraima
+
+**Estado em 29/10/2026:** piloto concluído sem divergências nos votos comparáveis.
+
+- **Fonte:** https://dadosabertos.tse.jus.br/dataset/resultados-2026-boletim-de-urna
+- **Arquivo:** `bweb_2t_RR_261020260742.zip`, segundo turno de Roraima.
+- **Integridade:** SHA-512 publicado pelo TSE conferido com o arquivo baixado.
+- **Script:** `tools/audit_dashboard_against_tse_bu.py`.
+- **Relatório:** `reports/auditoria_bu_dashboard_RR.json`.
+- **Chaves:** 1.519 chaves geográficas no dashboard, 1.519 chaves de BU e 1.519 em comum; nenhuma chave exclusiva e nenhuma chave duplicada no dashboard.
+- **Votos:** zero divergências para Lula e Flávio nos registros comparáveis; nenhum valor de voto inválido identificado no dashboard.
+- **Ausências nominais:** oito seções sem registro nominal de Flávio no arquivo de BU. O zero é usado somente para a comparação de votos, sem alterar o CSV original. A seção 63 de Uiramutã contém indicação de agregação de seções e requer cautela interpretativa.
+- **Testes automatizados:** seis testes passaram, incluindo comparação com ZIP sintético e rejeição de hash divergente.
+
+### Limites e próximos passos
+
+O resultado valida somente a comparação dos votos do segundo turno no piloto de Roraima. Não comprova cobertura nacional, não valida o primeiro turno e não constitui, por si só, evidência de fraude ou de comportamento individual de eleitores.
+
+1. Revisar o código, o relatório e os testes do piloto.
+2. Confirmar e processar os arquivos oficiais das demais UFs, preservando hashes, esquemas e resultados por UF.
+3. Planejar e executar separadamente a comparação do primeiro turno.
+4. Manter ausências, zeros e valores inválidos como situações distintas.
+5. Declarar validação nacional somente após concluir e revisar a cobertura das 27 UFs.
