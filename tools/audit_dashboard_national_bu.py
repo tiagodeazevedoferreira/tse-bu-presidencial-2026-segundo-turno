@@ -81,7 +81,7 @@ def discover_resources_from_page(page_html: str) -> dict[str, str]:
     for link in links:
         url = urllib.parse.urljoin(DATASET_PAGE_URL, html.unescape(link))
         filename = urllib.parse.urlparse(url).path.rsplit("/", 1)[-1]
-        if re.fullmatch(r"bweb_2t_[A-Za-z]{2}_.+\\.zip", filename, re.IGNORECASE):
+        if re.fullmatch(r"bweb_2t_[A-Za-z]{2}_.+\.zip", filename, re.IGNORECASE):
             resources.append({"url": url})
     return discover_resources(resources)
 
