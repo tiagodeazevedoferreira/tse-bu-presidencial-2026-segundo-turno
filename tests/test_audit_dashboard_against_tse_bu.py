@@ -159,6 +159,15 @@ class AuditBuIntegrationTests(unittest.TestCase):
             report["status"], "concluido_sem_divergencias"
         )
 
+    def test_auditoria_funciona_para_outra_uf(self):
+        with tempfile.TemporaryDirectory() as temp:
+            code, report = self.executar_auditoria(Path(temp), uf="AC")
+
+        self.assertEqual(code, 0)
+        self.assertEqual(report["uf"], "AC")
+        self.assertEqual(report["chaves_em_comum"], 1)
+        self.assertEqual(report["status"], "concluido_sem_divergencias")
+
     def test_interrompe_auditoria_quando_hash_nao_confere(self):
         with tempfile.TemporaryDirectory() as temp:
             code, report = self.executar_auditoria(
