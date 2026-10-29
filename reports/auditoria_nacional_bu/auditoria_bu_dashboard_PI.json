@@ -1,0 +1,38 @@
+{
+  "auditoria": "BU oficial do segundo turno versus dashboard",
+  "executado_em_utc": "2026-10-29T20:19:31.843118+00:00",
+  "uf": "PI",
+  "turno": 2,
+  "fonte_bu": "https://cdn.tse.jus.br/estatistica/sead/eleicoes/eleicoes2026/buweb/bweb_2t_PI_261020260742.zip",
+  "fonte_hash": "https://cdn.tse.jus.br/estatistica/sead/eleicoes/eleicoes2026/buweb/bweb_2t_PI_261020260742.zip.sha512",
+  "arquivo_bu": "bweb_2t_PI_261020260742.zip",
+  "arquivo_hash": "bweb_2t_PI_261020260742.zip.sha512",
+  "sha512_publicado": "d864c6f671daf94d0c3a8464b74052f1827fe6ac43a7666bc1d4cd37f3a4375ccb51ccc83ef04832487349a40e1d73b72e2ab0934b99d62465422b80c4499b54",
+  "sha512_calculado": "d864c6f671daf94d0c3a8464b74052f1827fe6ac43a7666bc1d4cd37f3a4375ccb51ccc83ef04832487349a40e1d73b72e2ab0934b99d62465422b80c4499b54",
+  "sha512_confere": true,
+  "arquivo_dashboard": "C:\\Users\\tiago.ferreira\\tse-bu-presidencial-2026-segundo-turno\\data\\NovoArquivoDashboard.csv",
+  "interpretacao": "A ausência de registro nominal de um candidato no BU é tratada como zero somente para a comparação dos votos nominais por seção neste teste. Isso não preenche nem altera o arquivo original.",
+  "arquivo_csv_interno_do_bu": "bweb_2t_PI_261020260742.csv",
+  "linhas_dashboard_rr": 10225,
+  "chaves_dashboard": 10225,
+  "chaves_bu": 10225,
+  "chaves_em_comum": 10225,
+  "somente_dashboard": [],
+  "somente_bu": [],
+  "duplicadas_dashboard": [],
+  "registros_nominais_duplicados_bu": [],
+  "valores_dashboard_invalidos": [],
+  "secoes_sem_registro_nominal_bu": {
+    "lula": 0,
+    "flavio": 1
+  },
+  "divergencias": {
+    "lula": [],
+    "flavio": []
+  },
+  "quantidade_divergencias": {
+    "lula": 0,
+    "flavio": 0
+  },
+  "status": "concluido_sem_divergencias"
+}
