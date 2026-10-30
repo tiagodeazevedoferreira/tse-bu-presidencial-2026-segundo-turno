@@ -1,6 +1,6 @@
 # Contexto de continuidade — projeto TSE 2026
 
-Última atualização: 29/10/2026.
+Última atualização: 30/10/2026.
 
 ## Repositórios e separação de escopo
 
@@ -28,27 +28,29 @@ Não confundir os dados/artefatos de uma frente com os da outra.
 
 ## Frente A — pipeline oficial de Boletins de Urna do segundo turno
 
-### Estado conhecido em 26/10/2026
+### Estado da fonte e processamento nacional — 30/10/2026
 
-- O repositório do segundo turno existe e tem branch padrão `main`.
-- `scripts/inspect_tse_bu_resources.py` consulta a API CKAN oficial e lista metadados, sem baixar ou processar os dados.
-- Fonte oficial confirmada para o piloto de Roraima (RR), segundo turno: arquivo `bweb_2t_RR_261020260742.zip`, publicado no conjunto oficial de resultados por boletim de urna do TSE. O SHA-512 publicado confere com o arquivo baixado. Isso confirma a fonte e a integridade do arquivo do piloto, não a cobertura nacional.
-- A listagem consultada em 26/10/2026 mostrava recursos rotulados como “Primeiro turno”, embora a página do conjunto diga que cobre os dois turnos.
-- Não declarar que existe pipeline nacional de BU do segundo turno concluído ou validado sem confirmar a fonte e processar as 27 UFs.
+- O script `tools/audit_dashboard_national_bu.py` descobre os recursos oficiais pela API CKAN do conjunto `resultados-2026-boletim-de-urna`, baixa/usa os ZIPs por UF, verifica os sidecars SHA-512, mantém cache temporário e executa a auditoria por UF, produzindo relatórios estaduais e consolidação nacional.
+- Foi corrigida a descoberta de recursos quando o CKAN informa uma URL terminada em `.zip.sha512`: o script reconhece o sidecar e recupera a URL do ZIP correspondente.
+- A correção está coberta por teste de regressão: `test_discovers_zip_when_ckan_resource_url_points_to_sha512_sidecar`.
+- Commits da correção e do teste:
+  - `9c135c5 fix: reconhece recursos CKAN publicados como sidecar SHA-512`
+  - `8018fe4 test: cobre URL CKAN de ZIP publicada como SHA-512`
+- Testes direcionados: `py -m unittest tests.test_audit_dashboard_national_bu -v` — 5 testes passaram.
+- Validação isolada de RR: 1.519 chaves do dashboard, 1.519 chaves de BU e 1.519 chaves em comum; zero divergências de Lula e Flávio; zero falhas técnicas.
+- Auditoria nacional executada com sucesso para as 27 UFs:
+  - `status`: `concluido_sem_divergencias_em_todas_as_ufs`;
+  - UFs solicitadas: 27; UFs com resultado: 27;
+  - UFs concluídas sem divergências: 27;
+  - UFs com divergências ou revisão: 0;
+  - falhas técnicas ou recursos ausentes: 0;
+  - em todas as UFs, divergências de votos de Lula: 0; divergências de votos de Flávio Bolsonaro: 0.
+- Em RR, a auditoria nacional confirmou novamente 1.519 chaves correspondentes, sem divergências.
+- Relatório consolidado: `reports/auditoria_nacional_bu.json`.
+- Relatórios por UF: `reports/auditoria_nacional_bu/auditoria_bu_dashboard_<UF>.json`, total de 27 arquivos.
+- Os 28 relatórios foram versionados no commit `7f8c639 docs: registra auditoria nacional dos boletins de urna` (1.448 linhas adicionadas) e enviados com sucesso para `origin/feat/auditoria-base-radar-anomalias`. O push confirmou a atualização remota de `8018fe4` para `7f8c639`.
 
-Fontes para conferir:
-- https://dadosabertos.tse.jus.br/dataset/resultados-2026-boletim-de-urna
-- https://dadosabertos.tse.jus.br/dataset/?tags=Ano+2026
-
-### Estratégia quando a fonte oficial for confirmada
-
-1. Registrar URL de origem, data/hora, hash e esquema.
-2. Baixar por UF, validar arquivos e hashes publicados pelo TSE.
-3. Inspecionar uma UF piloto antes de adaptar códigos ou campos.
-4. Processar em chunks e usar SQLite temporário para limitar consumo de memória.
-5. Gerar resultados por UF e consolidação nacional por seção.
-6. Validar cobertura das 27 UFs, chaves, valores negativos, totais, comparecimento, eleitorado e consistência entre arquivos.
-7. Só declarar conclusão nacional após os controles de integridade passarem.
+**Escopo e interpretação do resultado:** a auditoria compara, seção por seção, os votos nominais de Lula (13) e Flávio Bolsonaro (22) no segundo turno, usando o CSV do dashboard e os dados oficiais de Boletins de Urna. O resultado sem divergências cobre esses dois candidatos e esse turno; não valida todos os candidatos, todos os aspectos do processo eleitoral ou a correção de toda a base do primeiro turno. Também não prova nem descarta fraude eleitoral.
 
 ## Frente B — dashboard de crescimento entre turnos e Radar de Anomalias
 
@@ -67,7 +69,7 @@ O objetivo analítico é identificar padrões inesperados e casos extremos para 
 - Quando o voto inicial for zero, a variação percentual deve ser “não calculável”, e não infinito ou zero.
 - Ausências, valores inválidos e zero são estados diferentes e devem permanecer distintos.
 
-### Auditoria da base — resultado local em 28/10/2026
+### Auditoria estrutural do CSV — resultado local em 28/10/2026
 
 Script: `tools/audit_dashboard_csv.py`.
 Relatório local: `reports/auditoria_csv_dashboard.json`.
@@ -89,14 +91,14 @@ Após corrigir alterações manuais introduzidas no Excel, a execução local da
 
 O usuário informou que os valores `0,01` nas colunas do Flávio eram alterações manuais feitas no Excel para facilitar a inspeção e que o valor original desses casos era zero. Foram restauradas 80 ocorrências na coluna do primeiro turno e 50 na do segundo turno. Foi criado localmente o backup `data/NovoArquivoDashboard.csv.backup`; não adicionar esse backup ao Git.
 
-Tamanho observado do CSV local corrigido: 37.561.673 bytes. O tamanho/diff do arquivo em relação à versão rastreada pelo Git ainda precisa ser revisado antes de decidir se a fonte corrigida deve ser incluída no PR. Além da auditoria estrutural, foi executada uma comparação independente dos votos do segundo turno com os boletins de urna oficiais de Roraima. O piloto encontrou correspondência de todas as 1.519 chaves geográficas, sem divergências nos votos comparáveis de Lula e Flávio. A validação nacional e a comparação do primeiro turno continuam pendentes.
+Tamanho observado do CSV local corrigido: 37.561.673 bytes. A correção do CSV permanece sujeita à revisão do diff antes de decidir se a fonte deve entrar no PR. A auditoria nacional de BU do segundo turno descrita na Frente A não substitui essa revisão nem valida o primeiro turno.
 
 ### Testes e GitHub Actions
 
-- Execução local mais recente: `py -m unittest discover -s tests -v` — 6 testes passaram, incluindo os testes de auditoria de BU.
+- Execução local mais recente registrada: `py -m unittest discover -s tests -v` — 6 testes passaram, incluindo os testes de auditoria de BU.
 - GitHub Actions “Teste da auditoria do CSV”: execução nº 4 concluída com sucesso para o commit `3f831002efcfe0caf837d357bf416f982c1f13ea`.
 - PR nº 2 permanece aberto como rascunho, sem merge.
-- Os quatro arquivos de implementação da auditoria já estão rastreados na branch: `tools/audit_dashboard_csv.py`, `docs/PLANO-RADAR-ANOMALIAS.md`, `tests/test_audit_dashboard_csv.py` e `.github/workflows/test-auditoria-csv.yml`.
+- Os arquivos de implementação da auditoria estrutural já rastreados na branch: `tools/audit_dashboard_csv.py`, `docs/PLANO-RADAR-ANOMALIAS.md`, `tests/test_audit_dashboard_csv.py` e `.github/workflows/test-auditoria-csv.yml`.
 
 ### Plano técnico do Radar
 
@@ -108,24 +110,32 @@ Tamanho observado do CSV local corrigido: 37.561.673 bytes. O tamanho/diff do ar
 
 Manter o CSV como fonte de referência até concluir a auditoria. Só então medir alternativas derivadas (por exemplo, JSON gzip ou arrays compactos), comparando tamanho transferido, tempo de renderização e memória. Não adotar Parquet/DuckDB-WASM sem evidência de que uma solução mais simples não atende.
 
-## Estado operacional local e próxima ação
+## Estado operacional e próxima ação
 
-No último estado informado pelo usuário:
-- Branch local: `feat/auditoria-base-radar-anomalias`.
-- `git diff --check` terminou sem saída, sem apontar problemas de whitespace.
-- `git status --short` mostrou `data/NovoArquivoDashboard.csv` modificado, `reports/auditoria_csv_dashboard.json` e outros artefatos de investigação não rastreados.
-- Há scripts e arquivos CSV/PDF/ZIP de investigação em `reports/` e na raiz/`data/`; não adicioná-los em lote. Não incluir o backup.
-- A tentativa de visualizar o diff foi digitada como `mgit diff ...`, portanto o comando não foi executado. O próximo comando correto é:
+Estado confirmado em 30/10/2026:
+- Branch de trabalho: `feat/auditoria-base-radar-anomalias`.
+- Último commit local informado: `7f8c639`, com os 28 relatórios da auditoria nacional.
+- Push para `origin/feat/auditoria-base-radar-anomalias` concluído com sucesso; o remoto avançou de `8018fe4` para `7f8c639`.
+- PR nº 2 continua em rascunho e não foi mesclado.
+- Há arquivos auxiliares e resultados locais não rastreados de investigações anteriores. Não adicioná-los em lote.
+- O backup `data/NovoArquivoDashboard.csv.backup` não deve ser commitado.
+- O estado atual do working tree após o commit/push ainda precisa ser verificado com `git status --short`.
 
-```powershell
-git diff -- data/NovoArquivoDashboard.csv | Select-Object -First 120
-```
+### Próxima sequência recomendada
 
-Inspecionar esse diff antes de decidir se o CSV deve entrar no PR. Em seguida, selecionar explicitamente os arquivos da auditoria para staging, revisar `git diff --cached`, e só então preparar commit/push. Não fazer merge nem alterar `main` sem revisão.
+1. Atualizar este documento de continuidade e versionar a atualização na mesma branch.
+2. Verificar o estado local com `git status --short` e `git log -3 --oneline`.
+3. Inspecionar o diff do CSV corrigido antes de decidir se ele deve entrar no PR:
+   ```powershell
+   git diff -- data/NovoArquivoDashboard.csv | Select-Object -First 120
+   ```
+4. Não incluir scripts auxiliares, CSVs de investigação, relatórios exploratórios ou o backup sem uma decisão explícita sobre cada artefato.
+5. Depois de revisar os arquivos e testes, atualizar o PR nº 2. Não fazer merge nem alterar `main` sem autorização explícita.
 
 ## Regras para avançar
 
 - Não declarar que o dashboard ou o CSV foram validados contra todos os dados oficiais apenas com base na auditoria estrutural.
-- Não afirmar que o arquivo corrigido foi commitado ou enviado: a correção está apenas no ambiente local neste estado.
-- Não afirmar que o diff do CSV contém somente as correções esperadas até inspecioná-lo.
+- Não confundir a auditoria nacional de BU do segundo turno (Lula e Flávio, por seção) com uma validação integral do CSV, do primeiro turno ou de todos os candidatos.
+- Não afirmar que o arquivo corrigido foi commitado ou enviado: a correção do CSV continua pendente de inspeção do diff e decisão de versionamento.
+- Não afirmar que o working tree está limpo sem verificar `git status --short`.
 - Manter documentadas as decisões, os resultados reproduzíveis, as limitações e a próxima tarefa para permitir continuidade em outro chat.
