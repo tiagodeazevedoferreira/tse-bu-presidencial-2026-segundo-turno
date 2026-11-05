@@ -1,6 +1,6 @@
 # Contexto de continuidade — projeto TSE 2026
 
-Última atualização: 30/10/2026.
+Última atualização: 05/11/2026.
 
 ## Atualização de continuidade — 05/11/2026
 
