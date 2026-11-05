@@ -2,6 +2,37 @@
 
 Última atualização: 30/10/2026.
 
+## Atualização de continuidade — 05/11/2026
+
+### Estado Git informado localmente
+
+- Branch ativa: `feat/auditoria-base-radar-anomalias`.
+- HEAD local e `origin/feat/auditoria-base-radar-anomalias`: `8374b77` (`docs: atualiza contexto da auditoria nacional de BU`).
+- `git log --oneline origin/main..HEAD`: 17 commits na branch além de `origin/main`.
+- `git diff --stat origin/main...HEAD`: 36 arquivos, 2.690 inserções e 41 exclusões, incluindo auditoria nacional de BU, relatórios por UF, testes e documentação.
+- `git status --short` mostrou somente arquivos não rastreados; nenhum arquivo rastreado modificado foi listado. Isso não equivale a working tree totalmente limpo.
+- Arquivos não rastreados observados: `coletar_amostra.py`, `coletar_piloto_100.py`, `data/NovoArquivoDashboard.csv.backup`, `data/favio-diminuiu.csv`, `data/secoes_flavio_ate_100_votos_segundo_turno - Copia.csv`, `exportar_secao.py`, `identificar_candidatos.py`, `inspecionar_bu.py`, `reports/investigacao/`, `reports/tse_arquivos_totalizacao.json`, `reports/tse_bu_resources.json`, `reports/tse_bu_resources_20261029.json`, `reports/tse_resultados_2026_resources.json`, `secoes_flavio_ate_100_votos_segundo_turno.csv`, `secoes_flavio_zero_somente_segundo_turno.csv` e `testar_bu.py`.
+- Não executar `git add .`, `git clean` ou descarte em lote. Não adicionar automaticamente esses artefatos ao PR. O backup não deve ser commitado.
+
+### CSV principal e backup — verificação em 05/11/2026
+
+Hashes SHA-256 informados pelo usuário:
+
+- `data/NovoArquivoDashboard.csv`: `D7B001DFFAEDCD9C059F3DC5E9A3937654D2A64296CA1E8BFD57488C21832A27`.
+- `data/NovoArquivoDashboard.csv.backup`: `060B925392B5D3D0A623F6BADD0C232094E2B2D5DB68F2860092D8035A91DC84`.
+
+Os hashes diferentes comprovam que os arquivos não são idênticos byte a byte; isoladamente, não demonstram que a única diferença sejam as 130 células esperadas. Há registro anterior de 499.205 linhas em cada arquivo e da restauração de 80 ocorrências de `0,01` para `0` no primeiro turno e 50 no segundo turno. Esse total de 130 alterações deve ser revalidado por comparação direta entre os arquivos antes de ser tratado como resultado confirmado da comparação atual.
+
+### Próxima tarefa — auditoria comparativa não destrutiva
+
+1. Preservar o CSV atual e o backup; não sobrescrever nenhum deles.
+2. Comparar os arquivos por chave geográfica e por coluna, contando linhas/células alteradas e registrando valores anterior/atual.
+3. Confirmar se as diferenças se limitam às 130 restaurações esperadas (80 no primeiro turno e 50 no segundo), ou identificar diferenças adicionais.
+4. Verificar cabeçalho, delimitador, codificação, número de registros e chaves; não confiar apenas em hashes ou contagem de linhas.
+5. Gerar relatório separado em `reports/investigacao/` sem modificar a fonte.
+6. Só depois decidir se a versão corrigida do CSV deve ser incluída no PR nº 2. Não incluir o backup, scripts exploratórios ou CSVs derivados sem revisão individual.
+7. Manter o PR nº 2 em rascunho; não fazer merge nem alterar `main` sem autorização explícita.
+
 ## Repositórios e separação de escopo
 
 - Primeiro turno: https://github.com/tiagodeazevedoferreira/tse-bu-presidencial-2026 — preservar sem alterações por este projeto.
