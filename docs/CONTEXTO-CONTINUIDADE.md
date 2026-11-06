@@ -352,3 +352,15 @@ A saída de console apresenta caracteres acentuados corrompidos em algumas chave
 Executar perfilamento em streaming, sem carregar o CSV inteiro na memória. Não executar ainda junção completa, substituição de fonte do dashboard ou cálculo de anomalias a partir dessa base. Primeiro estabelecer perfil e proveniência.
 
 Este complemento registra apenas os resultados fornecidos pelo usuário. Não houve inspeção direta dos bytes do CSV/ZIP/PDF, nem alteração dos arquivos locais. Manter a branch de trabalho e o PR nº 2 sem merge; não modificar main.
+
+
+## Atualização da investigação — codificação do CSV nacional de votação por seção
+
+Diagnóstico executado localmente em 06/11/2026 para `reports/investigacao/votacao_secao_2026_BR.csv`:
+
+- O arquivo não pode ser decodificado como UTF-8: o teste falhou com `UnicodeDecodeError` no byte de posição 395 (byte `0xE7`).
+- A amostra de 1.000 bytes foi decodificada com sucesso usando `cp1252` e `latin-1`. O texto resultante exibiu corretamente caracteres acentuados em nomes e descrições, por exemplo `Eleição Ordinária` e `Eleição Geral Federal 2026`.
+- O resultado é compatível com arquivo em Windows-1252, mas o teste cobriu somente a amostra lida; ainda não foi feita validação integral da codificação do arquivo. `latin-1` decodifica qualquer sequência de bytes, portanto seu sucesso isolado não identifica a codificação.
+- O cabeçalho confirmado contém 26 colunas, separadas por ponto e vírgula: `DT_GERACAO`, `HH_GERACAO`, `ANO_ELEICAO`, `CD_TIPO_ELEICAO`, `NM_TIPO_ELEICAO`, `NR_TURNO`, `CD_ELEICAO`, `DS_ELEICAO`, `DT_ELEICAO`, `TP_ABRANGENCIA`, `SG_UF`, `SG_UE`, `NM_UE`, `CD_MUNICIPIO`, `NM_MUNICIPIO`, `NR_ZONA`, `NR_SECAO`, `CD_CARGO`, `DS_CARGO`, `NR_VOTAVEL`, `NM_VOTAVEL`, `QT_VOTOS`, `NR_LOCAL_VOTACAO`, `SQ_CANDIDATO`, `NM_LOCAL_VOTACAO`, `DS_LOCAL_VOTACAO_ENDERECO`.
+- Na amostra inicial, os registros exibidos indicam geração em 06/10/2026 às 14:03:43, eleição de 2026, código 6257, descrição `Eleição Geral Federal 2026`, data de eleição 04/10/2026 e turno 1. Isso descreve somente as linhas amostradas, não o conteúdo integral do CSV.
+- Próxima etapa: repetir o perfilamento sequencial do CSV de aproximadamente 1,05 GB usando `encoding="cp1252"` e `delimiter=";"`, sem carregar o arquivo inteiro na memória e sem regravar ou modificar o original. Apurar total de registros, turnos, cargos, UFs, eleição/data e votos por candidato no segundo turno presidencial. Ainda não há resultado desse perfilamento.
