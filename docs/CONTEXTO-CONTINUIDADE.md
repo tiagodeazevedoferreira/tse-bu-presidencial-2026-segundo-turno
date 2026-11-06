@@ -304,3 +304,51 @@ A presença de um arquivo no diretório não demonstra que esteja não rastreado
 6. Manter o PR nº 2 em rascunho e não fazer merge nem alterar main sem autorização explícita.
 
 **Estado de segurança:** nenhuma alteração local foi feita por esta atualização de contexto. A atualização deste documento no GitHub deve ser registrada como commit isolado na branch feat/auditoria-base-radar-anomalias; não alterar o CSV, os arquivos de investigação ou a main.
+
+
+## Complemento de evidências — 06/11/2026: metadados e amostra do CSV de votação por seção
+
+O usuário executou comandos PowerShell para obter os tamanhos exatos e inspecionar as cinco primeiras linhas de reports/investigacao/votacao_secao_2026_BR.csv, além de imprimir reports/investigacao/comparacao_csv.json.
+
+### Tamanhos exatos informados
+
+- votacao_secao_2026_BR.zip: 161.616.519 bytes.
+- votacao_secao_2026_BR.csv: 1.052.510.851 bytes (aproximadamente 1,05 GB decimal / 1,00 GiB).
+- leiame.pdf: 192.420 bytes.
+- comparacao_csv.json: 32.433 bytes.
+
+Correção do inventário anterior: o tamanho do CSV não é aproximadamente 510,9 MB; o valor exato informado posteriormente é 1.052.510.851 bytes. Não versionar o ZIP ou o CSV bruto no repositório sem justificativa e estratégia específica de armazenamento de dados. O PDF ainda não foi anexado/inspecionado em conteúdo; somente seu tamanho foi informado.
+
+### Cabeçalho observado do CSV
+
+O cabeçalho tem 26 campos, separados por ponto e vírgula e entre aspas: DT_GERACAO, HH_GERACAO, ANO_ELEICAO, CD_TIPO_ELEICAO, NM_TIPO_ELEICAO, NR_TURNO, CD_ELEICAO, DS_ELEICAO, DT_ELEICAO, TP_ABRANGENCIA, SG_UF, SG_UE, NM_UE, CD_MUNICIPIO, NM_MUNICIPIO, NR_ZONA, NR_SECAO, CD_CARGO, DS_CARGO, NR_VOTAVEL, NM_VOTAVEL, QT_VOTOS, NR_LOCAL_VOTACAO, SQ_CANDIDATO, NM_LOCAL_VOTACAO, DS_LOCAL_VOTACAO_ENDERECO.
+
+Campos particularmente relevantes: identificação geográfica (SG_UF, CD_MUNICIPIO, NM_MUNICIPIO, NR_ZONA, NR_SECAO); dimensão eleitoral (ANO_ELEICAO, CD_ELEICAO, NR_TURNO, CD_CARGO, DS_CARGO); votável e quantidade (NR_VOTAVEL, NM_VOTAVEL, QT_VOTOS, SQ_CANDIDATO); local de votação (NR_LOCAL_VOTACAO, NM_LOCAL_VOTACAO, DS_LOCAL_VOTACAO_ENDERECO); proveniência temporal (DT_GERACAO, HH_GERACAO, DT_ELEICAO). O CSV usa delimitador ponto e vírgula. A codificação ainda não foi confirmada formalmente.
+
+### O que a amostra permite afirmar — e o que não permite
+
+As primeiras linhas exibidas apresentam DT_GERACAO=06/10/2026, HH_GERACAO=14:03:43, ANO_ELEICAO=2026, CD_ELEICAO=6257, DS_ELEICAO=Eleição Geral Federal 2026, DT_ELEICAO=04/10/2026, NR_TURNO=1 nas quatro linhas de dados exibidas e CD_CARGO=1 / DS_CARGO=Presidente nas quatro linhas. A amostra contém municípios do RS e registros por zona, seção, local, votável e quantidade de votos.
+
+Está comprovado que a amostra inicial contém dados de votação por seção para o primeiro turno presidencial. Não está comprovado ainda se o arquivo completo contém também o segundo turno, todos os cargos, todas as UFs, todos os tipos de votável ou se é um recorte específico. Não extrapolar a amostra inicial para o conjunto completo.
+
+A base aparenta oferecer granularidade por seção e dimensões de turno, cargo, votável e local de votação. Isso pode permitir cruzamentos com o dashboard, mas qualquer integração depende de confirmar cobertura, semântica, codificação, chaves e compatibilidade temporal. Para junções, preferir códigos oficiais (por exemplo CD_MUNICIPIO, NR_ZONA, NR_SECAO) em vez de nomes textuais; incluir NR_TURNO e CD_CARGO na chave lógica quando aplicável. Não assumir que SQ_CANDIDATO equivale a NR_VOTAVEL: são campos distintos.
+
+### Atualização do relatório comparacao_csv.json
+
+O conteúdo impresso confirma: linhas_backup=499.205 e linhas_atual=499.205; 10 colunas e cabeçalhos idênticos; delimitador ponto e vírgula; zero chaves duplicadas em ambas as bases; zero linhas inválidas em ambas as bases; 80 linhas com alterações e 130 células alteradas; 80 alterações na coluna de Flávio do primeiro turno e 50 na coluna de Flávio do segundo turno; nenhuma chave somente na base atual ou somente no backup. As alterações listadas restauram valores de 0,01 no backup para 0 no CSV atual.
+
+A saída de console apresenta caracteres acentuados corrompidos em algumas chaves e cabeçalhos (por exemplo Fl?vio e PORTO PRÃNCIPE). Isso pode decorrer de decodificação/codificação no PowerShell ou de bytes já corrompidos no JSON. A causa ainda não foi determinada. Não corrigir o relatório nem os CSVs por inferência; verificar primeiro os bytes e reler explicitamente em UTF-8, comparando com a codificação real do arquivo.
+
+### Próximas verificações obrigatórias do CSV de 1,05 GB
+
+1. Confirmar codificação e BOM, delimitador e consistência de 26 colunas.
+2. Contar registros por NR_TURNO e CD_CARGO.
+3. Identificar valores distintos de SG_UF, CD_ELEICAO, DT_ELEICAO e DS_ELEICAO.
+4. Confirmar se há NR_TURNO=2 e quais candidatos/opções aparecem nesse turno para CD_CARGO=1.
+5. Contar linhas e chaves distintas por turno/cargo, verificando duplicidade na granularidade esperada.
+6. Comparar cobertura geográfica e chaves com o dashboard, sem presumir equivalência entre as fontes.
+7. Inspecionar leiame.pdf para confirmar nome oficial do arquivo, origem, data de extração, leiaute e escopo.
+
+Executar perfilamento em streaming, sem carregar o CSV inteiro na memória. Não executar ainda junção completa, substituição de fonte do dashboard ou cálculo de anomalias a partir dessa base. Primeiro estabelecer perfil e proveniência.
+
+Este complemento registra apenas os resultados fornecidos pelo usuário. Não houve inspeção direta dos bytes do CSV/ZIP/PDF, nem alteração dos arquivos locais. Manter a branch de trabalho e o PR nº 2 sem merge; não modificar main.
