@@ -1,6 +1,6 @@
 # Contexto de continuidade — projeto TSE 2026
 
-Última atualização: 05/11/2026.
+Última atualização: 06/11/2026.
 
 ## Atualização de continuidade — 05/11/2026
 
@@ -32,6 +32,51 @@ Os hashes diferentes comprovam que os arquivos não são idênticos byte a byte;
 5. Gerar relatório separado em `reports/investigacao/` sem modificar a fonte.
 6. Só depois decidir se a versão corrigida do CSV deve ser incluída no PR nº 2. Não incluir o backup, scripts exploratórios ou CSVs derivados sem revisão individual.
 7. Manter o PR nº 2 em rascunho; não fazer merge nem alterar `main` sem autorização explícita.
+
+
+## Atualização de continuidade — 06/11/2026: comparação forense do CSV concluída
+
+### Resultado confirmado localmente
+
+Foi executada uma comparação não destrutiva entre `data/NovoArquivoDashboard.csv` (atual) e `data/NovoArquivoDashboard.csv.backup`, usando chave geográfica composta por UF, município, zona e seção. A comparação abrangeu as 10 colunas e produziu o relatório local `reports/investigacao/comparacao_csv.json`.
+
+Resultados apresentados no console:
+
+- Linhas no backup: 499.205.
+- Linhas no CSV atual: 499.205.
+- Cabeçalhos: 10, idênticos.
+- Delimitador: ponto e vírgula (`;`).
+- Chaves duplicadas no backup: 0.
+- Chaves duplicadas no atual: 0.
+- Linhas inválidas no backup/atual: 0.
+- Chaves somente no atual: 0.
+- Chaves somente no backup: 0.
+- Linhas com alterações: 80.
+- Células alteradas: 130.
+- Alterações por coluna: 80 na coluna de Flávio no 1º turno e 50 na coluna de Flávio no 2º turno.
+- Nenhuma alteração foi registrada nas demais colunas, incluindo as colunas de Lula, identificadores e localização.
+- Status produzido pelo script: `comparacao_concluida`.
+
+Uma segunda leitura do relatório confirmou os valores exatos de todas as 130 células:
+
+- Flávio – 1º turno: 80 ocorrências de `0,01` no backup para `0` no CSV atual.
+- Flávio – 2º turno: 50 ocorrências de `0,01` no backup para `0` no CSV atual.
+- Total: 130 alterações, sem outras combinações de valores.
+
+### Conclusão e limites
+
+A comparação direta confirma que, no escopo das colunas e chaves comparadas, o CSV atual preserva os 499.205 registros e apresenta exatamente as 130 correções esperadas. Não foram encontradas diferenças adicionais, chaves ausentes, duplicidades ou linhas inválidas.
+
+Esta conclusão é uma comparação entre o CSV atual e o backup local; não substitui a validação contra a fonte oficial do TSE nem amplia o escopo da auditoria nacional de BU já documentada. Os cabeçalhos foram considerados idênticos pelos bytes/texto lidos pelo script, embora a exibição no console tenha mostrado caracteres acentuados como `?`; a questão de codificação/legibilidade dos nomes de colunas não foi investigada nesta etapa.
+
+O relatório `reports/investigacao/comparacao_csv.json` foi gerado localmente e não foi commitado. O backup permanece local e não deve ser versionado. Não foi feita alteração no CSV durante a comparação. A inclusão do CSV corrigido no PR continua condicionada à inspeção do diff e à decisão explícita de versionamento.
+
+### Próximas ações
+
+1. Verificar o estado local com `git status --short` e `git log -3 --oneline`, pois a lista anterior de arquivos não rastreados ainda precisa ser atualizada.
+2. Inspecionar o diff de `data/NovoArquivoDashboard.csv` antes de decidir se o arquivo corrigido entra no PR.
+3. Revisar individualmente os artefatos locais; não executar `git add .`, `git clean` nem adicionar o backup.
+4. Manter o PR nº 2 em rascunho; não fazer merge nem alterar `main` sem autorização explícita.
 
 ## Repositórios e separação de escopo
 
