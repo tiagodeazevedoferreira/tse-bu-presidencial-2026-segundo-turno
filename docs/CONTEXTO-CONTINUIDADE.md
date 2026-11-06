@@ -215,3 +215,92 @@ Estado confirmado em 30/10/2026:
 - Não afirmar que o arquivo corrigido foi commitado ou enviado: a correção do CSV continua pendente de inspeção do diff e decisão de versionamento.
 - Não afirmar que o working tree está limpo sem verificar `git status --short`.
 - Manter documentadas as decisões, os resultados reproduzíveis, as limitações e a próxima tarefa para permitir continuidade em outro chat.
+
+
+## Atualização de continuidade — 06/11/2026: inventário dos artefatos locais e revisão do commit bcf41a7
+
+### Verificações Git informadas pelo usuário
+
+Comandos executados na branch local feat/auditoria-base-radar-anomalias:
+
+    git show --stat --oneline bcf41a7
+    git status --short
+
+Saída do commit:
+
+- bcf41a7 Corrige zeros no CSV e atualiza relatório de auditoria
+- data/NovoArquivoDashboard.csv: 160 linhas alteradas no diff do commit.
+- reports/auditoria_csv_dashboard.json: 100 linhas adicionadas.
+- Total: 2 arquivos alterados, 180 inserções e 80 exclusões.
+
+Conclusão: o commit bcf41a7 registra conjuntamente a atualização do CSV e o relatório da auditoria estrutural. A verificação local anterior também informou que o CSV está rastreado pelo Git e que seu diff atual contra origin/main é vazio. Portanto, não criar outro commit para reapresentar o CSV sem antes verificar o estado atual da branch e do PR.
+
+A saída de git status --short contém somente entradas ??, ou seja, os seguintes itens estavam não rastreados no momento da execução:
+
+- Scripts: coletar_amostra.py, coletar_piloto_100.py, exportar_secao.py, identificar_candidatos.py, inspecionar_bu.py, testar_bu.py.
+- Arquivos de dados: data/NovoArquivoDashboard.csv.backup, data/favio-diminuiu.csv, data/secoes_flavio_ate_100_votos_segundo_turno - Copia.csv, secoes_flavio_ate_100_votos_segundo_turno.csv, secoes_flavio_zero_somente_segundo_turno.csv.
+- Diretório: reports/investigacao/.
+- Metadados TSE: reports/tse_arquivos_totalizacao.json, reports/tse_bu_resources.json, reports/tse_bu_resources_20261029.json, reports/tse_resultados_2026_resources.json.
+
+A lista é um retrato do git status informado pelo usuário, não uma confirmação de que o estado local continua igual neste momento. Não executar git add ., git clean, exclusões ou commits em lote.
+
+### Inventário de reports/investigacao/
+
+O usuário listou os seguintes arquivos locais:
+
+| Arquivo | Tamanho informado | Observação |
+|---|---:|---|
+| comparacao_csv.json | 32.433 bytes | Relatório da comparação forense entre CSV atual e backup, descrita acima |
+| leiame.pdf | 192.420 bytes | Documento de orientação associado ao conjunto de dados; conteúdo ainda não inspecionado |
+| votacao_secao_2026_BR.csv | aproximadamente 510.851.000 bytes (saída truncou a unidade/valor final) | CSV de votação por seção; conteúdo, origem e esquema ainda precisam ser inspecionados |
+| votacao_secao_2026_BR.zip | 161.616.519 bytes | Arquivo compactado de grande porte; não versionar sem necessidade explícita |
+
+O tamanho do CSV foi truncado pela formatação da tabela PowerShell; não registrar um tamanho exato até executar uma listagem que exponha o valor completo em bytes. O ZIP e o CSV devem ser considerados artefatos brutos/derivados de investigação até confirmação de sua origem, cobertura, esquema e necessidade. Não adicioná-los ao Git nem apagá-los nesta etapa.
+
+### Inspeção preliminar dos scripts exploratórios
+
+Os primeiros 50 registros de cada script foram apresentados pelo usuário:
+
+- coletar_amostra.py: usa asn1tools, HTTP e JSON para acessar arquivos de BU do TSE. As constantes apontam para o caminho ele2026/arquivo-urna/3221, configuração de SP e diretório local dados_bu. É um coletor exploratório de BUs, mas o restante do código ainda precisa ser lido antes de avaliar integridade, escopo e reprodutibilidade.
+- coletar_piloto_100.py: implementa coleta piloto com checkpoint, diretório de arquivos brutos, CSV de resultados e relatório de status. A constante LIMITE está definida como 200, apesar do nome do arquivo/script mencionar 100; verificar a semântica e o restante do código antes de reutilizar.
+- exportar_secao.py: decodifica um BU local (bu-teste.dat) com o esquema bu_2026.asn1, extrai resultados por cargo e votos nominais/brancos/nulos e prepara linhas para exportação. O mapeamento de candidatos exibido é ilustrativo/genérico (códigos 13 e 22), devendo ser confrontado com os metadados oficiais e o contexto da eleição antes de qualquer uso analítico.
+- identificar_candidatos.py: inspeciona os resultados decodificados e imprime códigos/tipos/identificações dos votáveis.
+- inspecionar_bu.py: imprime identificação da seção, estrutura de resultados e campos adicionais do BU, como comparecimento e habilitação.
+- testar_bu.py: testa compilação do esquema ASN.1 e tenta decodificar o arquivo como envelope e, em fallback, diretamente como BU.
+
+Os quatro últimos scripts são ferramentas de inspeção/validação exploratória que dependem de arquivos locais (bu_2026.asn1 e bu-teste.dat) não incluídos no inventário apresentado. Não assumir que podem ser executados em outro ambiente. Antes de incorporá-los ao projeto, verificar dependências, parâmetros, tratamento de erros, origem dos arquivos, cobertura, testes e relação com o pipeline oficial já versionado.
+
+### Outros relatórios JSON listados em reports/
+
+O usuário informou a existência local dos seguintes arquivos:
+
+- auditoria_bu_dashboard_RR.json — 1.704 bytes.
+- auditoria_csv_dashboard.json — 2.543 bytes.
+- auditoria_nacional_bu.json — 15.769 bytes.
+- tse_arquivos_totalizacao.json — 19.451 bytes.
+- tse_bu_resources.json — 28.088 bytes.
+- tse_bu_resources_20261029.json — 82.960 bytes.
+- tse_resultados_2026_resources.json — 30.499 bytes.
+
+A presença de um arquivo no diretório não demonstra que esteja não rastreado: o status fornecido lista como não rastreados apenas os quatro arquivos tse_*; os relatórios de auditoria citados não aparecem como ?? nessa saída. O relatório auditoria_csv_dashboard.json já aparece no commit bcf41a7. Não duplicar ou recriar relatórios já versionados.
+
+### Classificação preliminar e decisões
+
+1. Manter localmente: data/NovoArquivoDashboard.csv.backup; não versionar backup.
+2. Não versionar sem justificativa específica: ZIP bruto de 161.616.519 bytes e CSV extraído de aproximadamente 510,9 MB.
+3. Scripts exploratórios: manter preservados localmente; avaliar individualmente se algum deve ser promovido a ferramenta oficial, com parâmetros configuráveis, documentação e testes.
+4. Relatórios de descoberta TSE: podem ter valor de rastreabilidade, mas comparar seu conteúdo, data, URL e sobreposição com os relatórios já versionados antes de decidir.
+5. Relatório de comparação: reports/investigacao/comparacao_csv.json documenta a comparação local; decidir se deve ser versionado após inspecionar o conteúdo, remover caminhos absolutos/dados desnecessários e confirmar que não duplica outro relatório.
+6. PDF e CSV da investigação: inspecionar leiame.pdf e metadados/cabeçalho/amostra do CSV para confirmar origem e finalidade antes de qualquer decisão.
+7. Não fazer limpeza: nenhum arquivo deve ser removido com base apenas no nome ou tamanho.
+
+### Próximas ações técnicas
+
+1. Atualizar o estado local com git status --short, git log -5 --oneline e confirmar o HEAD/branch antes de novas alterações.
+2. Inspecionar reports/investigacao/leiame.pdf e os metadados do ZIP/CSV (origem, data, tamanho exato, cabeçalho, delimitador, codificação e número de registros) sem carregar o CSV inteiro na memória.
+3. Ler o restante dos scripts exploratórios, especialmente coletar_amostra.py e coletar_piloto_100.py, e identificar dependências e arquivos de entrada/saída.
+4. Comparar os quatro JSON tse_* com os recursos já documentados e verificar se há dados sensíveis, caminhos locais ou conteúdo redundante.
+5. Decidir individualmente o destino dos artefatos; não adicionar grandes arquivos brutos/derivados ao PR nº 2.
+6. Manter o PR nº 2 em rascunho e não fazer merge nem alterar main sem autorização explícita.
+
+**Estado de segurança:** nenhuma alteração local foi feita por esta atualização de contexto. A atualização deste documento no GitHub deve ser registrada como commit isolado na branch feat/auditoria-base-radar-anomalias; não alterar o CSV, os arquivos de investigação ou a main.
